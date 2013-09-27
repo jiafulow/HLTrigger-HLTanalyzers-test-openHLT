@@ -3,11 +3,11 @@ HLTrigger-HLTanalyzers-test-openHLT
 
 CMSSW NewOpenHLT https://twiki.cern.ch/twiki/bin/view/CMS/NewOpenHLT
 
-# openHLT2PAT
+## openHLT2PAT
 
 Join STEAM's new openHLT and offline PF2PAT together using SubProcess and two-file solution
 
-# Checkout
+### Checkout
 
 ```
 cd $CMSSW_BASE/src
@@ -17,18 +17,18 @@ cd $CMSSW_BASE/src
 git clone git@github.com:jiafulow/HLTrigger-HLTanalyzers-test-openHLT.git HLTrigger/HLTanalyzers/test/openHLT
 ```
 
-# Get necessary packages
+### Get necessary packages
 
-- See the file `addpkg_5_3_11.csh`
+See the file `addpkg_5_3_11.csh`
 
-# Run
+### Run
 
 ```
 python openHLT2PAT.py -p -i NOT_USED -o MyProducts.MET.root -t hlt_MET_skimHLTPFMET150.py -n 100
 cmsRun openhlt_go.py
 ```
 
-# Nota Bene
+### Nota Bene
 
 - FastTimerService clashes with SubProcess, so it is disabled from `setup_cff.py`.
 - `isData` switch is hardcoded in `openHLT.TEMPLATE`.
