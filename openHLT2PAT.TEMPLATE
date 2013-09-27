@@ -1,0 +1,294 @@
+#import FWCore.ParameterSet.Config as cms
+
+################################################################################
+# Original from PhysicsTools/PatAlgos/python/patTemplate_cfg.py
+# modified for use with OpenHLT
+################################################################################
+
+process = cms.Process("PAT")
+#isData=True
+
+## MessageLogger
+#process.load("FWCore.MessageLogger.MessageLogger_cfi")
+
+## Options and Output Report
+process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
+
+## Source
+#process.source = cms.Source("PoolSource",
+#    fileNames = cms.untracked.vstring()
+#)
+## Maximal Number of Events
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+
+## Geometry and Detector Conditions (needed for a few patTuple production steps)
+#process.load("Configuration.StandardSequences.Geometry_cff")
+process.load("Configuration.Geometry.GeometryIdeal_cff")
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+#from Configuration.AlCa.autoCond import autoCond
+#process.GlobalTag.globaltag = cms.string( autoCond[ 'startup' ] )
+process.load("Configuration.StandardSequences.MagneticField_cff")
+
+## Test JEC from test instances of the global DB
+#process.load("PhysicsTools.PatAlgos.patTestJEC_cfi")
+
+## Test JEC from local sqlite file
+#process.load("PhysicsTools.PatAlgos.patTestJEC_local_cfi")
+
+## Standard PAT Configuration File
+process.load("PhysicsTools.PatAlgos.patSequences_cff")
+
+## Output Module Configuration (expects a path 'p')
+from PhysicsTools.PatAlgos.patEventContent_cff import patEventContent
+process.out = cms.OutputModule("PoolOutputModule",
+                               fileName = cms.untracked.string('patTuple.root'),
+                               # save only events passing the full path
+                               SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
+                               # save PAT Layer 1 output; you need a '*' to
+                               # unpack the list of commands 'patEventContent'
+                               outputCommands = cms.untracked.vstring('drop *', *patEventContent )
+                               )
+process.outpath = cms.EndPath(process.out)
+
+
+################################################################################
+# User configurations
+################################################################################
+# ------------------------------------------------------------------------------
+# Primary Vertex
+# ------------------------------------------------------------------------------
+# Create good primary vertices to be used for PF association
+from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
+
+process.goodOfflinePrimaryVertices = cms.EDFilter(
+    "PrimaryVertexObjectFilter",
+    filterParams = pvSelector.clone( minNdof = cms.double(4.0), maxZ = cms.double(24.0) ),
+    src = cms.InputTag('offlinePrimaryVertices')
+    )
+
+
+################################################################################
+# Original from PhysicsTools/PatAlgos/test/patTuple_PF2PAT_cfg.py
+# modified for use with OpenHLT
+################################################################################
+
+# Configure PAT to use PF2PAT instead of AOD sources
+# this function will modify the PAT sequences.
+from PhysicsTools.PatAlgos.tools.pfTools import *
+
+postfix = "PFlow"
+jetAlgo = "AK5"
+inputJetCorrLabel = ['L1FastJet', 'L2Relative', 'L3Absolute']
+if isData:
+    inputJetCorrLabel = ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']
+
+#usePF2PAT(process,runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=True, postfix=postfix)
+# to turn on type-1 MET corrections, use the following call
+#usePF2PAT(process,runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=True, postfix=postfix, typeIMetCorrections=True)
+
+# Nota Bene: current JetMET version of PFNoPU leaves about 20% pile-up charged hadrons untouched. This compromise was necessary to avoid over-subtracting high pT tracks from jets. The L1chs corrections account for these remaining pile-up charged hadrons so the following settings must be enabled (these are different from lepton isolation settings)
+# https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#JetEnCorPFnoPU2012
+usePF2PAT(process,
+    runPF2PAT=True, 
+    jetAlgo=jetAlgo, 
+    runOnMC=(not isData), 
+    postfix=postfix, 
+    jetCorrections=('AK5PFchs', inputJetCorrLabel),
+    pvCollection=cms.InputTag('goodOfflinePrimaryVertices'),
+    typeIMetCorrections=True, 
+    outputModules=['out'])
+getattr(process,"pfPileUp"+postfix).checkClosestZVertex = False
+
+# to use particle-based isolation in patDefaultSequence
+usePFIso( process )
+
+# to run second PF2PAT+PAT with different postfix uncomment the following lines
+# and add the corresponding sequence to the path
+#postfix2 = "PFlow2"
+#jetAlgo2="AK7"
+#usePF2PAT(process,runPF2PAT=True, jetAlgo=jetAlgo2, runOnMC=True, postfix=postfix2)
+
+# to use tau-cleaned jet collection uncomment the following:
+#getattr(process,"pfNoTau"+postfix).enable = True
+
+# to switch default tau (HPS) to old default tau (shrinking cone) uncomment
+# the following:
+# note: in current default taus are not preselected i.e. you have to apply
+# selection yourself at analysis level!
+#adaptPFTaus(process,"shrinkingConePFTau",postfix=postfix)
+
+# to use GsfElectrons instead of PF electrons
+# useGsfElectrons(process,postfix)
+
+
+# ------------------------------------------------------------------------------
+# User stuff
+# ------------------------------------------------------------------------------
+#process.pfPileUpFlag = cms.EDProducer("PFPileUpFlag",
+#    pfCollection = cms.InputTag("particleFlow"),
+#    pfPileUpCollection = cms.InputTag("pfPileUpPFlow")
+#)
+
+#process.hltPFPileUpFlag = cms.EDProducer("PFPileUpFlag",
+#    pfCollection = cms.InputTag("hltParticleFlow"),
+#    pfPileUpCollection = cms.InputTag("hltPFPileUp")
+#)
+
+
+
+# ------------------------------------------------------------------------------
+# Let it run
+process.p = cms.Path(
+    process.goodOfflinePrimaryVertices
+  * getattr(process,"patPF2PATSequence"+postfix)
+ #+ process.pfPileUpFlag
+ #+ process.hltPFPileUpFlag
+)
+
+# SAK : do less please!
+process.p.remove(getattr(process,"makePatTaus"           +postfix))
+process.p.remove(getattr(process,"selectedPatTaus"       +postfix))
+process.p.remove(getattr(process,"countPatTaus"          +postfix))
+process.p.remove(getattr(process,"makePatPhotons"        +postfix))
+process.p.remove(getattr(process,"selectedPatPhotons"    +postfix))
+process.p.remove(getattr(process,"countPatPhotons"       +postfix))
+process.p.remove(getattr(process,"patPFParticles"        +postfix))
+process.p.remove(getattr(process,"selectedPatPFParticles"+postfix))
+process.p.remove(getattr(process,"countPatPFParticles"   +postfix))
+
+from PhysicsTools.PatAlgos.tools.helpers import listModules
+for module in listModules(process.p):
+    className = module.type_()
+    if not className.startswith("PAT") or not className.endswith("Producer"): continue
+
+    for parameter in module.parameterNames_():
+      # HACK -- currently broken if turned off for PATElectronProducer
+      if parameter == "embedHighLevelSelection":
+        setattr(module, parameter, True)
+
+      elif parameter.startswith("embed"):
+        setattr(module, parameter, False)
+      elif parameter == "addTagInfos":
+        setattr(module, parameter, False)
+
+
+# Add PF2PAT output to the created file
+from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
+#process.load("CommonTools.ParticleFlow.PF2PAT_EventContent_cff")
+#process.out.outputCommands =  cms.untracked.vstring('drop *')
+process.out.outputCommands = cms.untracked.vstring('drop *',
+                                                   'keep recoPFCandidates_particleFlow_*_*',
+                                                   *patEventContentNoCleaning)
+process.out.outputCommands.extend( [ 'keep *_goodOfflinePrimaryVertices*_*_*' 
+                                   , 'keep double_*_rho_*'
+                                   , 'drop *_selectedPatJetsForMETtype1p2CorrPFlow_*_*'
+                                   , 'drop *_selectedPatJetsForMETtype2CorrPFlow_*_*'
+                                   , "keep GenEventInfoProduct_*_*_*"
+                                   , "keep *recoGenParticles_genParticles__*"
+                                   , "keep *_addPileupInfo__*"
+                                   , "keep *_fixedGridRho*__*"
+                                   , "keep *_BeamHaloSummary__*"
+                                   , "keep *_GlobalHaloData__*"
+                                   , "keep *_ak5JetID__*"
+                                   , "keep *_ak5CaloJets__*"
+                                   , "keep *_ak5PFJets__*"
+                                   , "keep *_ak5GenJets*__*"
+                                   , "keep *_genMet*__*"
+                                   , "keep *_pfMet__*"
+                                   , "keep *_met__*" 
+                                  #, "keep *_pfPileUpFlag__*"
+                                  #, "keep *_hltPFPileUpFlag__*"
+                                   ] )
+
+# top projections in PF2PAT:
+getattr(process,"pfNoPileUp"+postfix).enable = True
+getattr(process,"pfNoMuon"+postfix).enable = True
+getattr(process,"pfNoElectron"+postfix).enable = True
+getattr(process,"pfNoTau"+postfix).enable = False
+getattr(process,"pfNoJet"+postfix).enable = True
+
+# verbose flags for the PF2PAT modules
+getattr(process,"pfNoMuon"+postfix).verbose = False
+
+# enable delta beta correction for muon selection in PF2PAT?
+getattr(process,"pfIsolatedMuons"+postfix).doDeltaBetaCorrection = False
+
+
+if isData:
+    # NOTE: use "ak5PFL1FastL2L3" for MC / "ak5PFL1FastL2L3Residual" for Data
+    #getattr(process,"pfJetMETcorrPFlow"+postfix).jetCorrLabel = cms.string("ak5PFL1FastL2L3Residual")
+    # NOTE: use "L3Absolute" for MC / "L2L3Residual" for Data
+    #getattr(process,"patPFJetMETtype1p2Corr"+postfix).jetCorrLabel = cms.string("L2L3Residual")
+    #process.AK5PFchsCombinedCorrector.correctors = cms.vstring('AK5PFchsL1FastJet',
+    #    'AK5PFchsL2Relative',
+    #    'AK5PFchsL3Absolute',
+    #    'AK5PFchsL2L3Residual'
+    #    )
+    pass
+
+# enable Type-0 MET Correction with PFCandidate
+#process.load("JetMETCorrections.Type1MET.pfMETCorrectionType0_cfi")
+#getattr(process,"pfType1CorrectedMet"+postfix).applyType0Corrections = cms.bool(False)
+#getattr(process,"pfType1CorrectedMet"+postfix).srcType1Corrections = cms.VInputTag(
+#    cms.InputTag("pfMETcorrType0"+postfix),
+#    cms.InputTag("pfJetMETcorr"+postfix, 'type1')
+#)
+#process.getattr("producePatPFMETCorrections"+postfix).replace(
+#    getattr(process,"pfCandMETcorr"+postfix),
+#    getattr(process,"type0PFMEtCorrection"+postfix) *
+#    getattr(process,"pfCandMETcorr"+postfix)
+#    )
+
+
+# ------------------------------------------------------------------------------
+# MET filters
+# ------------------------------------------------------------------------------
+process.load("RecoMET.METFilters.metFilters_cff")
+process.p_HBHENoiseFilter = cms.Path( process.HBHENoiseFilter )
+process.p_CSCTightHaloFilter = cms.Path( process.CSCTightHaloFilter )
+process.p_hcalLaserEventFilter = cms.Path( process.hcalLaserEventFilter )
+process.p_EcalDeadCellTriggerPrimitiveFilter = cms.Path( process.EcalDeadCellTriggerPrimitiveFilter )
+process.p_trackingFailureFilter = cms.Path( process.goodVertices * process.trackingFailureFilter )
+process.p_eeBadScFilter = cms.Path( process.eeBadScFilter )
+process.p_ecalLaserCorrFilter = cms.Path( process.ecalLaserCorrFilter )
+if isData:
+    process.p_trkPOGFilters = cms.Path( process.trkPOGFilters )
+
+
+
+
+# ------------------------------------------------------------------------------
+# MVA MET
+# ------------------------------------------------------------------------------
+#process.load('JetMETCorrections.METPUSubtraction.mvaPFMET_leptons_cff')
+#process.p_mvaPFMET = cms.Path(process.pfMEtMVAsequence)
+#process.out.outputCommands.extend(["keep *_pfMEtMVA_*_*"])
+
+
+## ------------------------------------------------------
+#  In addition you usually want to change the following
+#  parameters:
+## ------------------------------------------------------
+#
+#   process.GlobalTag.globaltag =  ...    ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
+#                                         ##
+if isData:
+    #process.GlobalTag.globaltag = cms.string( autoCond[ 'hltonline' ] )  # this is currently the GR_P globaltag
+    process.GlobalTag.globaltag = cms.string( "GR_P_V42_AN4::All" )
+else:
+    #process.GlobalTag.globaltag = cms.string( autoCond[ 'startup' ] )
+    process.GlobalTag.connect   = 'frontier://FrontierProd/CMS_COND_31X_GLOBALTAG'
+    process.GlobalTag.pfnPrefix = cms.untracked.string('frontier://FrontierProd/')
+    from Configuration.AlCa.GlobalTag import GlobalTag as customiseGlobalTag
+    process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = 'auto:startup_8E33v2')
+
+#from PhysicsTools.PatAlgos.patInputFiles_cff import filesRelValProdTTbarAODSIM
+#process.source.fileNames = filesRelValProdTTbarAODSIM
+#                                         ##
+#process.maxEvents.input = 100
+#                                         ##
+#   process.out.outputCommands = [ ... ]  ##  (e.g. taken from PhysicsTools/PatAlgos/python/patEventContent_cff.py)
+#                                         ##
+#process.out.fileName = 'patTuple_PF2PAT.root'
+#                                         ##
+#   process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)

@@ -20,10 +20,17 @@ outputSummary=True
 hltProcName="HLT3"
 #runOpen=False#True #ignore all filter decisions, true for testing
 
+# custom
+runSkim=True
+#runPAT=True
+modifySource=True
+modifyOutput=True
+
 if isData:
     from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
 else:
-    from muPathsMC import *
+    #from muPathsMC import *
+    from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
 process.load("setup_cff")
 
 
@@ -68,11 +75,25 @@ process.source = cms.Source("PoolSource",
                             eventsToProcess =cms.untracked.VEventRange()
                             )
 
-print "Input/output file(s):\n--------------"
-for i in range(len(ifiles)):
-    fname=filePrefex+ifiles[i].strip()
-    print "< :",fname
-    process.source.fileNames.extend([fname,])
+if modifySource:
+    if isData:
+        from ifiles_MET_RAWAOD_208307 import *
+    else:
+        from ifiles_WJetsToLNu_PU25bx50 import *
+        #from ifiles_QCD_Flat import *
+    process.source.fileNames = cms.untracked.vstring(srcvstring)
+    process.source.secondaryFileNames = cms.untracked.vstring(secsrcvstring)
+    #process.source.fileNames = cms.untracked.vstring(secsrcvstring)
+    print "Input/output file(s):\n--------------"
+    for i in range(len(process.source.fileNames)):
+        fname=process.source.fileNames[i]
+        print "< :",fname
+else:
+    print "Input/output file(s):\n--------------"
+    for i in range(len(ifiles)):
+        fname=filePrefex+ifiles[i].strip()
+        print "< :",fname
+        process.source.fileNames.extend([fname,])
 print "> : ("+os.environ["USER"]+"@"+socket.gethostname()+":) "+ofile
 print "--------------"
 if verbose: print "Maximum number of events:", maxNrEvents
@@ -103,8 +124,8 @@ process.output = cms.OutputModule("PoolOutputModule",
                                   )
 if outputRAW:
     process.output.outputCommands=cms.untracked.vstring("drop *","keep *_rawDataCollector_*_*","keep *_addPileupInfo_*_*","keep *_TriggerResults_*_*","keep *_hltTriggerSummaryAOD_*_*")
-                                                                
-process.HLTOutput_sam = cms.EndPath(process.output)
+
+#process.HLTOutput_sam = cms.EndPath(process.output)
 
 #hlt stuff
 process.MessageLogger.cerr.FwkReport = cms.untracked.PSet(
@@ -162,6 +183,9 @@ if 'PrescaleService' in process.__dict__:
 if 'GlobalTag' in process.__dict__:
     process.GlobalTag.connect   = 'frontier://FrontierProd/CMS_COND_31X_GLOBALTAG'
     process.GlobalTag.pfnPrefix = cms.untracked.string('frontier://FrontierProd/')
+    if not isData:
+        from Configuration.AlCa.GlobalTag import GlobalTag as customiseGlobalTag
+        process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = 'auto:startup_8E33v2')
 
 if 'MessageLogger' in process.__dict__:
     process.MessageLogger.categories.append('TriggerSummaryProducerAOD')
@@ -300,7 +324,8 @@ if runOpen:
         for filterName in path.moduleNames():
             filt = getattr(process,filterName)
             if type(filt).__name__=="EDFilter":
-                path.replace(filt,cms.ignore(filt))
+                if not (runSkim and filterName.startswith("dontignore")):
+                    path.replace(filt,cms.ignore(filt))
             
 
 def cleanList(input,blacklist):
@@ -350,12 +375,89 @@ process.output.outputCommands=cms.untracked.vstring("drop *","keep *_TriggerResu
 for product in productsToKeep:
     process.output.outputCommands.append("keep *_"+product+"_*_*")
 
+# SAK: More miserly
+if modifyOutput:
+    process.output.outputCommands.extend( [ "drop *_hltSiStripRawToClustersFacility_*_*"
+                                          , "drop recoPFRecHits_*_*_*"
+                                          , "drop recoPFClusters_*_*_*"
+                                          , "drop recoPFBlocks*_*_*_*"
+                                          , "drop *_hltSiPixel*_*_*"
+                                          , "drop *_hltPFJetCtf*_*_*"
+                                          , "drop *_hltPFJetCkf*_*_*"
+                                          , "drop *_hltIter1*_*_*"
+                                          , "drop *_hltIter2*_*_*"
+                                          , "drop *_hltIter3*_*_*"
+                                          , "drop *_hltIter4*_*_*"
+                                          , "drop *_hltPFMuon*_*_*"
+                                          , "drop *_hltMuonLinks*_*_*"
+                                          , "drop *_hltTrackRefs*_*_*"
+                                          , "drop recoTrackExtras_*_*_*"
+                                          , "drop recoTrackJets_*_*_*"
+                                          , "drop EcalRecHit*_*_*_*"
+                                          , "drop TrajectorySeeds*_*_*_*"
+                                          , "drop TrackingRecHits*_*_*_*"
+                                          , "drop *_hltEcal*_*_*"
+                                          , "drop *_hltHcal*_*_*"
+                                          , "drop *_hltHbhe*_*_*"
+                                          , "drop *_hltHo*_*_*"
+                                          , "drop *_hltHf*_*_*"
+                                          , "drop *_hltSiStrip*_*_*"
+                                          , "drop *_hltCsc*_*_*"
+                                          , "drop *_hltDt*_*_*"
+                                          , "drop *_hltRpc*_*_*"
+                                          , "drop *_hltL2*_*_*"
+                                          , "drop *_hltL3*_*_*"
+                                          , "drop triggerTriggerEvent_*_*_*"
+                                          , "drop CSCDetId*_*_*_*"
+                                          , "drop RPCDetId*_*_*_*"
+                                          , "drop RPCRaw*_*_*_*"
+                                          , "drop DTLayer*_*_*_*"
+                                          , "drop DTChamber*_*_*_*"
+                                          , "drop *_hltPFPileUp_*_*"
+                                          , "drop recoMuonTime*_*_*_*"
+
+                                          , "drop L1GlobalTriggerObjectMapRecord_*_*_HLT"
+                                          , "drop *_hltTowerMakerForAll_*_*"
+                                          , "drop *_hltPFlowTrackSelectionHighPurity_*_*"
+                                          , "drop *_hltPixelTracks_*_*"
+                                          , "drop *_hltPFNoPileUp_*_*"
+
+                                          , "drop recoPFCandidates_hltParticleFlow_Cleaned*_*"
+                                          , "drop *_hltTowerMakerForPF_*_*"
+                                         #, "drop *_hltLightPFTracks_*_*"
+                                          ] )
+
+#####################################################################################
+# vvvvvv PAT configurations injected by openHLT.py (if any), as requested by the user
+$PATCONFIG
+process.subProcess = cms.SubProcess(patprocess,
+    #SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),  #Optional parameter, expect a path 'p'
+    SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring("HLT_PFMET150_v*") ) if runSkim else 
+                     cms.untracked.PSet( SelectEvents = cms.vstring("*") ),
+    outputCommands = cms.untracked.vstring('keep *')  #Optional parameter, defaulting to "keep *"
+    #outputCommands = process.output.outputCommands
+)
+
+
+# Combine outputCommands from process and patprocess 
+#patprocess.out.splitLevel = process.output.splitLevel
+patprocess.out.fileName = process.output.fileName
+#patprocess.out.dataset = process.output.dataset
+process.output.outputCommands.remove("drop *")
+patprocess.out.outputCommands.extend(process.output.outputCommands)
+#process.output.outputCommands=cms.untracked.vstring("drop *")
+#patprocess.out.SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring("p") )
+################################################################################
+
 # version specific customizations
 #import os
 #cmsswVersion = os.environ['CMSSW_VERSION']
 
 # ---- dump ----
-#dump = open('dump.py', 'w')
-#dump.write( process.dumpPython() )
-#dump.close()
+if isData:
+    dump = open('dump.py', 'w')
+else:
+    dump = open('dumpMC.py', 'w')
+dump.write( process.dumpPython() )
+dump.close()
 

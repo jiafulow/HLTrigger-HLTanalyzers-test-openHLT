@@ -33,3 +33,10 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Logs
+log
+*.log
+
+# ROOT files
+*.root
