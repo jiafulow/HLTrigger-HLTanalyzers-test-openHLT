@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import os, sys, argparse
-import re
 from datetime import datetime
 
 # own configuration
@@ -18,7 +17,6 @@ maxNrEvents=1000
 projectFile=""
 hlt_file="hlt.py"
 oHLTconfig_template="openHLT.TEMPLATE"
-oHLTconfig_pattemplate="openHLT2PAT.TEMPLATE"
 oHLTconfig_out="openhlt_go.py"
 
 # http://docs.python.org/2/library/argparse.html
@@ -135,21 +133,6 @@ except IOError:
 if verbose: print mprefx, "[i] read the template file:", oHLTconfig_template
 temp=temp.replace("$HLTFILE", hlt_module)
 temp=temp.replace("$CONFIG", cmd)
-
-
-################################################################################
-try: pattemp=open(oHLTconfig_pattemplate).read()
-except IOError:
-    print mprefx,"[!] Error: Cannot find the PAT template file:",oHLTconfig_pattemplate
-    sys.exit()
-if verbose: print mprefx, "[i] read the PAT template file:", oHLTconfig_pattemplate
-# minify the inserted configurations
-pattemp = re.sub(r'\s*#.*?\n', '\n', pattemp)  # remove comments
-pattemp = re.sub(r'\n+','\n', pattemp)  # remove blank lines
-pattemp = re.sub(r'\bprocess\b', 'patprocess', pattemp)  # rename it as patprocess
-temp=temp.replace("$PATCONFIG", pattemp)
-################################################################################
-
 
 other_changes=""
 for change in args.other_changes: other_changes=other_changes+change+"\n"
