@@ -37,8 +37,9 @@ cmsRun openhlt_go.py
 - Global tag for PAT is hardcoded in `openHLT2PAT.TEMPLATE`.
 - Global tag for HLT is provided by default by `setup_cff.py` and can be overwritten by input HLT config file.
 - To run CRAB jobs, it's easiest to use the `dump.py` file that is produced when `cmsRun openhlt_go.py` is executed successfully.
+- Currently, many intermediate objects are not saved (in order to reduce disk usage), so it's not possible to do the filter step.
 
 ### Useful Links
 
 - https://twiki.cern.ch/twiki/bin/view/CMS/NewOpenHLT
-
+- https://twiki.cern.ch/twiki/bin/view/CMS/JetMETTriggers
