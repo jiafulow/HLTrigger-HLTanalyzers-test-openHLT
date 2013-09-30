@@ -71,6 +71,9 @@ parser.add_argument('--go', action='store_true', #type= bool,
                     #default=verbose,
                     help='start cmsRun with the "go" file')
 
+parser.add_argument('--mc', dest='is_data', action='store_false', #type= bool,
+                    help='run on Monte Carlo simulated events (default: false)')
+
 #parser.add_argument('-m', action='store_true', #type= bool,
 #                    #default=verbose,
 #                    #go interactive mode
@@ -102,13 +105,16 @@ oHLTconfig_out=args.openhlt_go_file
 oHLTconfig_template=args.openhlt_template_file
 
 
-cmd='verbose=%r \nisCrabJob=%r  \nrunProducers=%r \nrunOpen=%r \nifiles=%r \nofile="%s" \nmaxNrEvents=%d' % (args.verbose,
-                                                                                                           args.crab_job,
-                                                                                                           args.run_producers,
-                                                                                                           args.run_producers,
-                                                                                                           args.input_root_files,
-                                                                                                           args.output_root_file,
-                                                                                                           maxNrEvents)
+# Configurations from command line
+cmd=('verbose=%r \nisCrabJob=%r  \nrunProducers=%r \nrunOpen=%r \nisData=%r \nifiles=%r \nofile="%s" \nmaxNrEvents=%d'
+    % (args.verbose,
+       args.crab_job,
+       args.run_producers,
+       args.run_producers,
+       args.is_data,
+       args.input_root_files,
+       args.output_root_file,
+       maxNrEvents))
 
 #print args
 hlt_module=args.hlt_config
@@ -133,6 +139,7 @@ except IOError:
 if verbose: print mprefx, "[i] read the template file:", oHLTconfig_template
 temp=temp.replace("$HLTFILE", hlt_module)
 temp=temp.replace("$CONFIG", cmd)
+temp=temp.replace("$PATCONFIG", "")
 
 other_changes=""
 for change in args.other_changes: other_changes=other_changes+change+"\n"

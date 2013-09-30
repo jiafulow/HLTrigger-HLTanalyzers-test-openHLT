@@ -73,6 +73,9 @@ parser.add_argument('--go', action='store_true', #type= bool,
                     #default=verbose,
                     help='start cmsRun with the "go" file')
 
+parser.add_argument('--mc', dest='is_data', action='store_false', #type= bool,
+                    help='run on Monte Carlo simulated events (default: false)')
+
 #parser.add_argument('-m', action='store_true', #type= bool,
 #                    #default=verbose,
 #                    #go interactive mode
@@ -103,14 +106,18 @@ except ValueError:
 oHLTconfig_out=args.openhlt_go_file
 oHLTconfig_template=args.openhlt_template_file
 
-
-cmd='verbose=%r \nisCrabJob=%r  \nrunProducers=%r \nrunOpen=%r \nifiles=%r \nofile="%s" \nmaxNrEvents=%d' % (args.verbose,
-                                                                                                           args.crab_job,
-                                                                                                           args.run_producers,
-                                                                                                           args.run_producers,
-                                                                                                           args.input_root_files,
-                                                                                                           args.output_root_file,
-                                                                                                           maxNrEvents)
+# Configurations from command line
+cmd=('verbose=%r \nisCrabJob=%r  \nrunProducers=%r \nrunOpen=%r \nisData=%r \nifiles=%r \nofile="%s" \nmaxNrEvents=%d'
+    % (args.verbose,
+       args.crab_job,
+       args.run_producers,
+       args.run_producers,
+       args.is_data,
+       args.input_root_files,
+       args.output_root_file,
+       maxNrEvents))
+cmd+=(' \nopenHLT2PAT=%r \noutputJetMET=%r'
+    % (True, True))
 
 #print args
 hlt_module=args.hlt_config
@@ -147,6 +154,24 @@ if verbose: print mprefx, "[i] read the PAT template file:", oHLTconfig_pattempl
 pattemp = re.sub(r'\s*#.*?\n', '\n', pattemp)  # remove comments
 pattemp = re.sub(r'\n+','\n', pattemp)  # remove blank lines
 pattemp = re.sub(r'\bprocess\b', 'patprocess', pattemp)  # rename it as patprocess
+pattemp += """
+
+process.subProcess = cms.SubProcess(patprocess,
+    #SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),  #Optional parameter, expect a path 'p'
+    SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring("*") ),
+    outputCommands = cms.untracked.vstring('keep *')  #Optional parameter, defaulting to "keep *"
+    #outputCommands = process.output.outputCommands
+)
+
+# Combine outputCommands from process and patprocess
+#patprocess.out.splitLevel = process.output.splitLevel
+patprocess.out.fileName = process.output.fileName
+#patprocess.out.dataset = process.output.dataset
+process.output.outputCommands.remove("drop *")
+patprocess.out.outputCommands.extend(process.output.outputCommands)
+#process.output.outputCommands=cms.untracked.vstring("drop *")
+#patprocess.out.SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring("p") )
+"""
 temp=temp.replace("$PATCONFIG", pattemp)
 ################################################################################
 
@@ -177,4 +202,3 @@ if args.go:
         os.system(cmd)
 #print cmd
 #print args
-

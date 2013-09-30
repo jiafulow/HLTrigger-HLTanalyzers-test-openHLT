@@ -10015,17 +10015,17 @@ if 'GlobalTag' in process.__dict__:
     from Configuration.AlCa.GlobalTag import GlobalTag as customiseGlobalTag
     process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = 'auto:hltonline')
 
-# customize the L1 emulator to run customiseL1GtEmulatorFromRaw with HLT to switchToSimGtDigis
-process.load( 'Configuration.StandardSequences.RawToDigi_Data_cff' )
-process.load( 'Configuration.StandardSequences.SimL1Emulator_cff' )
-import L1Trigger.Configuration.L1Trigger_custom
-process = L1Trigger.Configuration.L1Trigger_custom.customiseL1GtEmulatorFromRaw( process )
-process = L1Trigger.Configuration.L1Trigger_custom.customiseResetPrescalesAndMasks( process )
+## customize the L1 emulator to run customiseL1GtEmulatorFromRaw with HLT to switchToSimGtDigis
+#process.load( 'Configuration.StandardSequences.RawToDigi_Data_cff' )
+#process.load( 'Configuration.StandardSequences.SimL1Emulator_cff' )
+#import L1Trigger.Configuration.L1Trigger_custom
+#process = L1Trigger.Configuration.L1Trigger_custom.customiseL1GtEmulatorFromRaw( process )
+#process = L1Trigger.Configuration.L1Trigger_custom.customiseResetPrescalesAndMasks( process )
 
-# customize the HLT to use the emulated results
-import HLTrigger.Configuration.customizeHLTforL1Emulator
-process = HLTrigger.Configuration.customizeHLTforL1Emulator.switchToL1Emulator( process )
-process = HLTrigger.Configuration.customizeHLTforL1Emulator.switchToSimGtDigis( process )
+## customize the HLT to use the emulated results
+#import HLTrigger.Configuration.customizeHLTforL1Emulator
+#process = HLTrigger.Configuration.customizeHLTforL1Emulator.switchToL1Emulator( process )
+#process = HLTrigger.Configuration.customizeHLTforL1Emulator.switchToSimGtDigis( process )
 
 if 'MessageLogger' in process.__dict__:
     process.MessageLogger.categories.append('TriggerSummaryProducerAOD')

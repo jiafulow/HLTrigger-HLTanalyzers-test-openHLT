@@ -9795,6 +9795,80 @@ process.hltPreL1ETM100 = cms.EDFilter( "HLTPrescaler",
     offset = cms.uint32( 0 )
 )
 
+# New
+process.hltMetJetIDClean = cms.EDProducer('HLTTPCaloJetsOnCaloJetsMETCleaner',
+  deltaR = cms.double(0.001),
+  topCollection = cms.InputTag('hltCaloJetIDPassed'),
+  bottomCollection = cms.InputTag('hltAntiKT5CaloJets'),
+  metLabel = cms.InputTag('hltMet'),
+  useInverseMask = cms.bool(True),
+  usePt = cms.bool(False),
+  minEt = cms.double(0),
+  maxEta = cms.double(9999)
+)
+process.hltTrackMetProducer = cms.EDProducer('HLTTrackMETProducer',
+  usePt = cms.bool(True),
+  useJets = cms.bool(False),
+  useTracks = cms.bool(False),
+  excludePFMuons = cms.bool(False),
+  minPt = cms.double(0),
+  maxEta = cms.double(9999),
+  scale = cms.double(1),
+  pfCandidatesLabel = cms.InputTag('hltPFNoPileUp'),
+  pfJetsLabel = cms.InputTag('hltAK5PFJetL1FastL2L3Corrected'),
+  pfRecTracksLabel = cms.InputTag('hltLightPFTracks')
+)
+process.hltMETJetIDClean60 = cms.EDFilter( "HLT1CaloMET",
+    saveTags = cms.bool( True ),
+    MinPt = cms.double( 60.0 ),
+    MinN = cms.int32( 1 ),
+    MaxEta = cms.double( -1.0 ),
+    MinMass = cms.double( -1.0 ),
+    inputTag = cms.InputTag( "hltMetJetIDClean" ),
+    MinE = cms.double( -1.0 ),
+    triggerType = cms.int32( 87 )
+)
+process.hltTrackMet30 = cms.EDFilter( "HLT1MET",
+    saveTags = cms.bool( True ),
+    MinPt = cms.double( 30.0 ),
+    MinN = cms.int32( 1 ),
+    MaxEta = cms.double( -1.0 ),
+    MinMass = cms.double( -1.0 ),
+    inputTag = cms.InputTag( "hltTrackMetProducer" ),
+    MinE = cms.double( -1.0 ),
+    triggerType = cms.int32( 90 )
+)
+process.hlt2PFMETTrackMETDPhi05 = cms.EDFilter( "HLT2METMET",
+  saveTags = cms.bool(False),
+  originTag1 = cms.InputTag('hltPFMETProducer'),
+  originTag2 = cms.InputTag('hltTrackMetProducer'),
+  inputTag1 = cms.InputTag('hltPFMET150Filter'),
+  inputTag2 = cms.InputTag('hltTrackMet30'),
+  triggerType1 = cms.int32(90),
+  triggerType2 = cms.int32(90),
+  MinDphi = cms.double(0.0),
+  MaxDphi = cms.double(0.5),
+  MinDeta = cms.double(1),
+  MaxDeta = cms.double(-1),
+  MinMinv = cms.double(1),
+  MaxMinv = cms.double(-1),
+  MinDelR = cms.double(1),
+  MaxDelR = cms.double(-1),
+  MinPt = cms.double(1),
+  MaxPt = cms.double(-1),
+  MinN = cms.int32(1)
+)
+process.hltMinDPhiFilter = cms.EDFilter('HLTMinDPhiFilter',
+  saveTags = cms.bool(False),
+  excludePFMuons = cms.bool(False),
+  maxNJets = cms.int32(999),
+  minPt = cms.double(30),
+  maxEta = cms.double(9999),
+  minDPhi = cms.double(0.5),
+  metLabel = cms.InputTag('hltPFMETProducer'),
+  jetsLabel = cms.InputTag('hltAK5PFJetL1FastL2L3Corrected')
+)
+
 process.HLTL1UnpackerSequence = cms.Sequence( process.hltGtDigis + process.hltGctDigis + process.hltL1GtObjectMap + process.hltL1extraParticles )
 process.HLTBeamSpot = cms.Sequence( process.hltScalersRawToDigi + process.hltOnlineBeamSpot )
 #process.HLTBeginSequence = cms.Sequence( process.dontignoreSkimL1ETM36ORETM40 + process.hltTriggerType + process.HLTL1UnpackerSequence + process.HLTBeamSpot )
@@ -9853,6 +9927,13 @@ process.HLT_L1ETM30_v2 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ET
 process.HLT_L1ETM40_v2 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM40 + process.hltPreL1ETM40 + process.HLTEndSequence )
 process.HLT_L1ETM70_v2 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM70 + process.hltPreL1ETM70 + process.HLTEndSequence )
 process.HLT_L1ETM100_v2 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM100 + process.hltPreL1ETM100 + process.HLTEndSequence )
+
+# New
+process.HLT_PFMET150_Changed_HBHENoiseCleaned_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.HLTEndSequence )
+process.HLT_PFMET150_Changed_HBHENoiseCleaned_JetIDCleaned_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.hltMetJetIDClean + process.hltMETJetIDClean60 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.HLTEndSequence )
+process.HLT_PFMET150_Changed_HBHENoiseCleaned_JetIDCleaned_minDPhi_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.hltMetJetIDClean + process.hltMETJetIDClean60 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.hltMinDPhiFilter + process.HLTEndSequence )
+process.HLT_PFMET150_Changed_HBHENoiseCleaned_JetIDCleaned_TrackMET30_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.hltMetJetIDClean + process.hltMETJetIDClean60 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.hltTrackMetProducer + process.hltTrackMet30 + process.HLTEndSequence )
+process.HLT_PFMET150_Changed_HBHENoiseCleaned_JetIDCleaned_TrackMETDPhi_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.hltMetJetIDClean + process.hltMETJetIDClean60 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.hltTrackMetProducer + cms.ignore(process.hltTrackMet30) + process.hlt2PFMETTrackMETDPhi05 + process.HLTEndSequence )
 
 
 process.source = cms.Source( "PoolSource",
