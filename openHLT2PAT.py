@@ -116,8 +116,8 @@ cmd=('verbose=%r \nisCrabJob=%r  \nrunProducers=%r \nrunOpen=%r \nisData=%r \nif
        args.input_root_files,
        args.output_root_file,
        maxNrEvents))
-cmd+=(' \nopenHLT2PAT=%r \noutputJetMET=%r'
-    % (True, True))
+cmd+=(' \nopenHLT2PAT=%r'
+    % (True))
 
 #print args
 hlt_module=args.hlt_config

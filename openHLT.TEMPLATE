@@ -15,28 +15,15 @@ except: pass
 
 #Configuration options not meant to be modified from command line (at least for the time being)
 outputRAW=False
+outputLess=True
 outputSummary=True
 hltProcName="HLT3"
 #runOpen=False#True #ignore all filter decisions, true for testing
 
 #Configuration options to be modified from command line by openHLT2PAT.py
-#runSkim=True
-#modifySource=True
-#modifyOutput=True
 openHLT2PAT=False
-outputJetMET=False
 
-#####################################################################################
-# vvvvvvvvvvvv configuration options injected by openHLT.py, as requested by the user
-$CONFIG
-
-#####################################################################################
-
-if isData:
-    from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
-else:
-    #from muPathsMC import *
-    from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
+from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
 process.load("setup_cff")
 
 
@@ -45,6 +32,9 @@ interpreter=sys.argv.pop(0)
 myname=sys.argv.pop(0)
 
 #####################################################################################
+# vvvvvvvvvvvv configuration options injected by openHLT.py, as requested by the user
+$CONFIG
+
 # vvvvvvvvvvvvvv other code injected by openHLT.py (if any), as requested by the user
 $OTHERCHANGES
 
@@ -86,7 +76,6 @@ process.source = cms.Source("PoolSource",
                             secondaryFileNames = cms.untracked.vstring(),
                             eventsToProcess =cms.untracked.VEventRange()
                             )
-
 
 print "Input/output file(s):\n--------------"
 for i in range(len(ifiles)):
@@ -365,9 +354,10 @@ for pathName in process.pathNames().split():
 # This adds all the producers to be kept, just to be safe
 # Later on it should be optimized so that only the
 # producers we run on should be saved.
-for moduleName in process.producerNames().split():
-    if moduleName.startswith("hlt"):
-        productsToKeep.add(moduleName)
+if not outputLess:
+    for moduleName in process.producerNames().split():
+        if moduleName.startswith("hlt"):
+            productsToKeep.add(moduleName)
     
                
 #productsToKeep = uniq(productsToKeep)
@@ -379,56 +369,6 @@ process.output.outputCommands=cms.untracked.vstring("drop *","keep *_TriggerResu
 for product in productsToKeep:
     process.output.outputCommands.append("keep *_"+product+"_*_*")
 
-if outputJetMET:
-    process.output.outputCommands.extend( [ "drop *_hltSiStripRawToClustersFacility_*_*"
-                                          , "drop recoPFRecHits_*_*_*"
-                                          , "drop recoPFClusters_*_*_*"
-                                          , "drop recoPFBlocks*_*_*_*"
-                                          , "drop *_hltSiPixel*_*_*"
-                                          , "drop *_hltPFJetCtf*_*_*"
-                                          , "drop *_hltPFJetCkf*_*_*"
-                                          , "drop *_hltIter1*_*_*"
-                                          , "drop *_hltIter2*_*_*"
-                                          , "drop *_hltIter3*_*_*"
-                                          , "drop *_hltIter4*_*_*"
-                                          , "drop *_hltPFMuon*_*_*"
-                                          , "drop *_hltMuonLinks*_*_*"
-                                          , "drop *_hltTrackRefs*_*_*"
-                                          , "drop recoTrackExtras_*_*_*"
-                                          , "drop recoTrackJets_*_*_*"
-                                          , "drop EcalRecHit*_*_*_*"
-                                          , "drop TrajectorySeeds*_*_*_*"
-                                          , "drop TrackingRecHits*_*_*_*"
-                                          , "drop *_hltEcal*_*_*"
-                                          , "drop *_hltHcal*_*_*"
-                                          , "drop *_hltHbhe*_*_*"
-                                          , "drop *_hltHo*_*_*"
-                                          , "drop *_hltHf*_*_*"
-                                          , "drop *_hltSiStrip*_*_*"
-                                          , "drop *_hltCsc*_*_*"
-                                          , "drop *_hltDt*_*_*"
-                                          , "drop *_hltRpc*_*_*"
-                                          , "drop *_hltL2*_*_*"
-                                          , "drop *_hltL3*_*_*"
-                                          , "drop triggerTriggerEvent_*_*_*"
-                                          , "drop CSCDetId*_*_*_*"
-                                          , "drop RPCDetId*_*_*_*"
-                                          , "drop RPCRaw*_*_*_*"
-                                          , "drop DTLayer*_*_*_*"
-                                          , "drop DTChamber*_*_*_*"
-                                          , "drop *_hltPFPileUp_*_*"
-                                          , "drop recoMuonTime*_*_*_*"
-
-                                          , "drop L1GlobalTriggerObjectMapRecord_*_*_HLT"
-                                          , "drop *_hltTowerMakerForAll_*_*"
-                                          , "drop *_hltPFlowTrackSelectionHighPurity_*_*"
-                                          , "drop *_hltPixelTracks_*_*"
-                                          , "drop *_hltPFNoPileUp_*_*"
-
-                                          , "drop recoPFCandidates_hltParticleFlow_Cleaned*_*"
-                                          , "drop *_hltTowerMakerForPF_*_*"
-                                         #, "drop *_hltLightPFTracks_*_*"
-                                          ] )
 
 #####################################################################################
 # vvvvvv PAT configurations injected by openHLT.py (if any), as requested by the user
