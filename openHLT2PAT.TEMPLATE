@@ -122,28 +122,13 @@ usePFIso( process )
 
 
 # ------------------------------------------------------------------------------
-# User stuff
-# ------------------------------------------------------------------------------
-#process.pfPileUpFlag = cms.EDProducer("PFPileUpFlag",
-#    pfCollection = cms.InputTag("particleFlow"),
-#    pfPileUpCollection = cms.InputTag("pfPileUpPFlow")
-#)
-
-#process.hltPFPileUpFlag = cms.EDProducer("PFPileUpFlag",
-#    pfCollection = cms.InputTag("hltParticleFlow"),
-#    pfPileUpCollection = cms.InputTag("hltPFPileUp")
-#)
-
-
-
-# ------------------------------------------------------------------------------
 # Let it run
+# ------------------------------------------------------------------------------
 process.p = cms.Path(
     process.goodOfflinePrimaryVertices
   * getattr(process,"patPF2PATSequence"+postfix)
- #+ process.pfPileUpFlag
- #+ process.hltPFPileUpFlag
 )
+
 
 # SAK : do less please!
 process.p.remove(getattr(process,"makePatTaus"           +postfix))
@@ -179,6 +164,7 @@ from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
 process.out.outputCommands = cms.untracked.vstring('drop *',
                                                    'keep recoPFCandidates_particleFlow_*_*',
                                                    *patEventContentNoCleaning)
+
 process.out.outputCommands.extend( [ 'keep *_goodOfflinePrimaryVertices*_*_*' 
                                    , 'keep double_*_rho_*'
                                    , 'drop *_selectedPatJetsForMETtype1p2CorrPFlow_*_*'
@@ -196,8 +182,6 @@ process.out.outputCommands.extend( [ 'keep *_goodOfflinePrimaryVertices*_*_*'
                                    , "keep *_genMet*__*"
                                    , "keep *_pfMet__*"
                                    , "keep *_met__*" 
-                                  #, "keep *_pfPileUpFlag__*"
-                                  #, "keep *_hltPFPileUpFlag__*"
                                    ] )
 
 # top projections in PF2PAT:
@@ -255,6 +239,29 @@ if isData:
     process.p_trkPOGFilters = cms.Path( process.trkPOGFilters )
 
 
+# ------------------------------------------------------------------------------
+# User stuff
+# ------------------------------------------------------------------------------
+process.pfPileUpFlag = cms.EDProducer("PFPileUpFlag",
+    pfCollection = cms.InputTag("particleFlow"),
+    pfPileUpCollection = cms.InputTag("pfPileUpPFlow")
+)
+
+process.hltPFPileUpFlag = cms.EDProducer("PFPileUpFlag",
+    pfCollection = cms.InputTag("hltParticleFlow"),
+    pfPileUpCollection = cms.InputTag("hltPFPileUp")
+)
+
+userSequence = cms.Sequence(
+    process.pfPileUpFlag
+  + process.hltPFPileUpFlag
+)
+userOutputCommands = cms.untracked.vstring(
+    "keep *_pfPileUpFlag__*"
+  , "keep *_hltPFPileUpFlag__*"
+)
+process.p += userSequence
+process.out.outputCommands += userOutputCommands
 
 
 # ------------------------------------------------------------------------------
