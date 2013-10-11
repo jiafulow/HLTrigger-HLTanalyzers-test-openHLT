@@ -358,8 +358,17 @@ if not outputLess:
     for moduleName in process.producerNames().split():
         if moduleName.startswith("hlt"):
             productsToKeep.add(moduleName)
-    
-               
+addProductsToKeep = [
+    "hltAntiKT5CaloJets",
+    "hltAntiKT5PFJets",
+    "hltAntiKT5PFJetsNoPU",
+    "hltLightPFTracks",
+    "hltParticleFlow",
+]
+for product in addProductsToKeep:
+    productsToKeep.add(product)
+
+
 #productsToKeep = uniq(productsToKeep)
 productsToKeep = cleanList(productsToKeep,process.filterNames().split())
 
