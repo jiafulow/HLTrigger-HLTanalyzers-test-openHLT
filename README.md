@@ -27,7 +27,7 @@ git clone git@github.com:jiafulow/HLTrigger-HLTanalyzers-test-openHLT.git HLTrig
 
 ### Run
 
-For openHLT-only:
+For openHLT-only (on Data):
 ```sh
 # Producer step
 python openHLT.py -p -i /store/data/Run2012D/MET/RAW/v1/000/208/307/F4F98F29-9E3A-E211-8A78-003048F1C420.root -o MyProducts.MET.root -t hlt_MET.py -n 1000
@@ -37,7 +37,7 @@ python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET.py -n 
 cmsRun openhlt_go.py
 ```
 
-For openHLT2PAT:
+For openHLT2PAT (on Data):
 ```sh
 # Producer step
 python openHLT2PAT.py -p -i ifiles_MET_RAWAOD_208307.py -o MyProducts.MET.root -t hlt_MET.py -n 1000
@@ -46,9 +46,12 @@ cmsRun openhlt_go.py
 python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET.py -n 1000
 ```
 
+To run on MC, add `--mc` option to openHLT.py or openHLT2PAT.py.
+
 #### Nota Bene
 
-- FastTimerService clashes with SubProcess, so it is disabled in `setup_cff.py` and has to be disabled in any input HLT ocnfig file.
+- **Important**: Please edit `openHLT2PAT.TEMPLATE` and disable the lines under the comment block "User stuff". These are stuff that is interesting to the author, but probably not to anyone else.
+- FastTimerService clashes with SubProcess, so it is disabled in `setup_cff.py` and has to be disabled in any input HLT config file.
 - Global tag for MC is hardcoded in both `openHLT.TEMPLATE`, `openHLT2PAT.TEMPLATE`.
 - Global tag for PAT is hardcoded in `openHLT2PAT.TEMPLATE`.
 - Global tag for HLT is provided by default by `setup_cff.py` and can be overwritten by input HLT config file.
