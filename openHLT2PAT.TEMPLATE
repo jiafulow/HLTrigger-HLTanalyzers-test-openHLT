@@ -165,24 +165,25 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
                                                    'keep recoPFCandidates_particleFlow_*_*',
                                                    *patEventContentNoCleaning)
 
-process.out.outputCommands.extend( [ 'keep *_goodOfflinePrimaryVertices*_*_*' 
-                                   , 'keep double_*_rho_*'
-                                   , 'drop *_selectedPatJetsForMETtype1p2CorrPFlow_*_*'
-                                   , 'drop *_selectedPatJetsForMETtype2CorrPFlow_*_*'
-                                   , "keep GenEventInfoProduct_*_*_*"
-                                   , "keep *recoGenParticles_genParticles__*"
-                                   , "keep *_addPileupInfo__*"
-                                   , "keep *_fixedGridRho*__*"
-                                   , "keep *_BeamHaloSummary__*"
-                                   , "keep *_GlobalHaloData__*"
-                                   , "keep *_ak5JetID__*"
-                                   , "keep *_ak5CaloJets__*"
-                                   , "keep *_ak5PFJets__*"
-                                   , "keep *_ak5GenJets*__*"
-                                   , "keep *_genMet*__*"
-                                   , "keep *_pfMet__*"
-                                   , "keep *_met__*" 
-                                   ] )
+process.out.outputCommands.extend( ['keep *_offlinePrimaryVertices*_*_*', 
+                                    'keep *_goodOfflinePrimaryVertices*_*_*',
+                                    'keep double_*_rho_*',
+                                    'drop *_selectedPatJetsForMETtype1p2CorrPFlow_*_*',
+                                    'drop *_selectedPatJetsForMETtype2CorrPFlow_*_*',
+                                    "keep GenEventInfoProduct_*_*_*",
+                                    "keep *recoGenParticles_genParticles__*",
+                                    "keep *_addPileupInfo__*",
+                                    "keep *_fixedGridRho*__*",
+                                    "keep *_BeamHaloSummary__*",
+                                    "keep *_GlobalHaloData__*",
+                                    "keep *_ak5JetID__*",
+                                    "keep *_ak5CaloJets__*",
+                                    "keep *_ak5PFJets__*",
+                                    "keep *_ak5GenJets*__*",
+                                    "keep *_genMet*__*",
+                                    "keep *_pfMet__*",
+                                    "keep *_met__*",
+                                    ] )
 
 # top projections in PF2PAT:
 getattr(process,"pfNoPileUp"+postfix).enable = True
@@ -252,13 +253,29 @@ process.hltPFPileUpFlag = cms.EDProducer("PFPileUpFlag",
     pfPileUpCollection = cms.InputTag("hltPFPileUp")
 )
 
+HLTJetIDParams = cms.PSet(
+    useRecHits = cms.bool( True ),
+    hbheRecHitsColl = cms.InputTag( "hltHbhereco" ),
+    hoRecHitsColl = cms.InputTag( "hltHoreco" ),
+    hfRecHitsColl = cms.InputTag( "hltHfreco" ),
+    ebRecHitsColl = cms.InputTag( "hltEcalRecHitAll","EcalRecHitsEB" ),
+    eeRecHitsColl = cms.InputTag( "hltEcalRecHitAll","EcalRecHitsEE" ),
+    rpcRecHits = cms.InputTag( "hltRpcRecHits" ),
+)
+
+process.hltAK5JetID = cms.EDProducer("JetIDProducer", HLTJetIDParams,
+    src = cms.InputTag("hltAntiKT5CaloJets")
+)
+
 userSequence = cms.Sequence(
     process.pfPileUpFlag
   + process.hltPFPileUpFlag
+  + process.hltAK5JetID
 )
 userOutputCommands = cms.untracked.vstring(
-    "keep *_pfPileUpFlag__*"
-  , "keep *_hltPFPileUpFlag__*"
+    "keep *_pfPileUpFlag__*",
+    "keep *_hltPFPileUpFlag__*",
+    "keep *_hltAK5JetID_*_*",
 )
 process.p += userSequence
 process.out.outputCommands += userOutputCommands

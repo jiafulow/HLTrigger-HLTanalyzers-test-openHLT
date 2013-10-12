@@ -359,6 +359,7 @@ if not outputLess:
         if moduleName.startswith("hlt"):
             productsToKeep.add(moduleName)
 addProductsToKeep = [
+    "hltTowerMakerForAll",
     "hltAntiKT5CaloJets",
     "hltAntiKT5PFJets",
     "hltAntiKT5PFJetsNoPU",

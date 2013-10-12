@@ -46,7 +46,7 @@ cmsRun openhlt_go.py
 python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET.py -n 1000
 ```
 
-To run on MC, add `--mc` option to openHLT.py or openHLT2PAT.py.
+To run on MC, add `--mc` argument to `openHLT.py` or `openHLT2PAT.py`.
 
 #### Nota Bene
 
