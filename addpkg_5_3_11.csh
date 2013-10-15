@@ -41,6 +41,14 @@ cvs co -r V00-00-08 DataFormats/TrackerCommon
 cvs co -r V01-09-05 RecoLocalTracker/SubCollectionProducers
 
 # ------------------------------------------------------------------------------
+# TobTecFakesFilter
+# ------------------------------------------------------------------------------
+cvs co -d KStenson/TrackingFilters UserCode/KStenson/TrackingFilters
+cp KStenson/TrackingFilters/plugins/TobTecFakesFilter.cc RecoMET/METFilters/plugins/
+cp KStenson/TrackingFilters/python/tobtecfakesfilter_cfi.py RecoMET/METFilters/python/
+rm -rf KStenson/TrackingFilters
+
+# ------------------------------------------------------------------------------
 # PAT recipe V08-09-62
 # https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePATReleaseNotes52X
 # ------------------------------------------------------------------------------
