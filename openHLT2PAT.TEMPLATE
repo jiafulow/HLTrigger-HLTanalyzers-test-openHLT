@@ -238,6 +238,13 @@ process.p_eeBadScFilter = cms.Path( process.eeBadScFilter )
 process.p_ecalLaserCorrFilter = cms.Path( process.ecalLaserCorrFilter )
 if isData:
     process.p_trkPOGFilters = cms.Path( process.trkPOGFilters )
+process.load("metOptionalFilters_cff")
+process.p_goodVerticesFilter = cms.Path( process.goodVerticesFilter )
+process.p_noscraping = cms.Path( process.noscraping )
+if isData:
+    process.p_hcallasereventfilter2012 = cms.Path( process.hcallasereventfilter2012 )
+process.p_EcalDeadCellBoundaryEnergyFilter = cms.Path( process.EcalDeadCellBoundaryEnergyFilter )
+process.p_tobtecfakesFilters = cms.Path( process.tobtecfakesFilters )
 
 
 # ------------------------------------------------------------------------------

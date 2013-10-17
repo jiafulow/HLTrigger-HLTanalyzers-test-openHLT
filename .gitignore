@@ -40,3 +40,6 @@ log
 
 # ROOT files
 *.root
+
+# Backup
+*.bak
