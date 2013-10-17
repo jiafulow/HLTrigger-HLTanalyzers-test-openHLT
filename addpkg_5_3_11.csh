@@ -1,7 +1,7 @@
 source /uscmst1/prod/sw/cms/cshrc prod  # only at FNAL
 setenv SCRAM_ARCH slc5_amd64_gcc462
 
-# Prepare working area
+## Prepare working area
 cmsrel CMSSW_5_3_11
 cd CMSSW_5_3_11/src
 cmsenv
@@ -19,7 +19,7 @@ addpkg HLTrigger/Configuration
 # https://twiki.cern.ch/twiki/bin/view/CMS/NewOpenHLT
 # ------------------------------------------------------------------------------
 addpkg HLTrigger/btau V04-01-16
-addpkg HLTrigger/HLTanalyzers
+addpkg HLTrigger/HLTanalyzers V03-10-20
 #cp /afs/cern.ch/user/h/halil/public/openHLT/* .
 
 # ------------------------------------------------------------------------------
@@ -54,10 +54,11 @@ rm -rf KStenson/TrackingFilters
 # ------------------------------------------------------------------------------
 addpkg DataFormats/PatCandidates V06-05-06-12
 addpkg PhysicsTools/PatAlgos     V08-09-62
-addpkg PhysicsTools/PatUtils
+#addpkg PhysicsTools/PatUtils
+addpkg PhysicsTools/PatUtils     V03-09-28
 
 # ------------------------------------------------------------------------------
-# MET recipe for CMSSW_5_3_11
+# MET recipe for CMSSW_5_3_11 (till patch 3)
 # https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMetAnalysis
 # https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideMETRecipe53X
 # ------------------------------------------------------------------------------
@@ -65,33 +66,65 @@ addpkg PhysicsTools/PatUtils
 addpkg DataFormats/METReco V03-03-11-01
 addpkg JetMETCorrections/Type1MET V04-06-09-02
 
-
 # ------------------------------------------------------------------------------
-# MVA Met
+# MVA MET
 # https://twiki.cern.ch/twiki/bin/view/CMS/MVAMet
+# https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetID
 # ------------------------------------------------------------------------------
-#cvs co -r METPU_5_3_X_v12 JetMETCorrections/METPUSubtraction 
-##cd JetMETCorrections/METPUSubtraction/test/
-##./setup.sh 
-##cd ../../../
-#
+#cvs co -r METPU_5_3_X_v10 JetMETCorrections/METPUSubtraction
 #cvs co -r HEAD -d pharrisTmp UserCode/pharris/MVAMet/data
-#cp  -d pharrisTmp/*June2013*.root           JetMETCorrections/METPUSubtraction/data/
+#cp  -d pharrisTmp/*June2013*.root          JetMETCorrections/METPUSubtraction/data/
+#cp  -d pharrisTmp/*Dec2012*.root           JetMETCorrections/METPUSubtraction/data/
 ##cp  -d pharrisTmp/*53_UnityResponse.root  JetMETCorrections/METPUSubtraction/data/
 #rm -rf pharrisTmp
-##cvs co -r METPU_5_3_X_v12 RecoJets/JetProducers
-##cvs up -r HEAD RecoJets/JetProducers/data/
-##cvs up -r HEAD RecoJets/JetProducers/python/PileupJetIDCutParams_cfi.py                     
-##cvs up -r HEAD RecoJets/JetProducers/python/PileupJetIDParams_cfi.py                     
-##cvs up -r HEAD RecoJets/JetProducers/python/PileupJetID_cfi.py                     
-###cvs up -r CMSSW_5_3_3 RecoJets/JetProducers/src/JetSpecific.cc
-##cvs co -r b5_3_X_cvMEtCorr_2013Feb22            DataFormats/METReco
-##cvs co -r V05-00-16                             DataFormats/JetReco
-##cvs co -r V01-04-25                             RecoTauTag/RecoTau 
-##cvs co -r V03-04-07                             RecoMET/METAlgorithms
-##cvs co -r V01-04-13                             RecoTauTag/Configuration
+#
+### Micro-managing :(
+### 1. Get PU jet id stuff
+#addpkg DataFormats/JetReco  # refer V05-00-16
+#cd DataFormats/JetReco
+#cvs up -r 1.1 interface/PileupJetIdentifier.h
+#cvs up -r 1.1 src/PileupJetIdentifier.cc
+#cd ..
+#
+#addpkg RecoJets/JetProducers  # refer METPU_5_3_X_v4
+#cvs co -r HEAD RecoJets/JetProducers/data
+#cd RecoJets/JetProducers
+#cvs up -r 1.4 BuildFile.xml
+#cvs up -r 1.2 interface/PileupJetIdAlgo.h
+#cvs up -r 1.1 src/PileupJetIdAlgo.cc
+#cvs up -r 1.2 plugins/BuildFile.xml
+#cvs up -r 1.2 plugins/PileupJetIdProducer.cc
+#cvs up -r HEAD python/PileupJetIDCutParams_cfi.py
+#cvs up -r HEAD python/PileupJetIDParams_cfi.py
+#cvs up -r HEAD python/PileupJetID_cfi.py
+#cd ..
+#
+### 2. Get MVA MET stuff
+##addpkg DataFormats/METReco  # refer b5_3_X_cvMEtCorr_2013Feb22
+#cd DataFormats/METReco
+#cvs up -r 1.2 interface/MVAMEtData.h
+#cvs up -r 1.1 interface/MVAMEtDataFwd.h
+#cvs up -r 1.2 interface/SigInputObj.h
+#cvs up -r 1.3 interface/PFMEtSignCovMatrix.h
+#cvs up -r 1.1 src/MVAMEtData.cc
+#cvs up -r 1.2 src/SigInputObj.cc
+#cd ..
+#
+#addpkg RecoMET/METAlgorithms  # refer V03-04-07
+#cd RecoMET/METAlgorithms
+#rm interface/SigInputObj.h
+#rm src/SigInputObj.cc
+#cvs up -r 1.6 interface/SignAlgoResolutions.h
+#cvs up -r 1.7 interface/SignCaloSpecificAlgo.h
+#cvs up -r 1.3 interface/significanceAlgo.h
+#cvs up -r 1.11 src/SignCaloSpecificAlgo.cc
+#cd ..
+#
+#addpkg RecoTauTag/RecoTau V01-05-07-00
 
 
+## Finish up
 checkdeps -a
 scram b -j4
 rehash
+
