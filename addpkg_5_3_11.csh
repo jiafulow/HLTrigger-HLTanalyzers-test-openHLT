@@ -66,6 +66,32 @@ addpkg PhysicsTools/PatUtils     V03-09-28
 addpkg DataFormats/METReco V03-03-11-01
 addpkg JetMETCorrections/Type1MET V04-06-09-02
 
+
+# ------------------------------------------------------------------------------
+# Type-0+1 MET
+# https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMetAnalysis
+# https://github.com/TaiSakuma/WorkBookMet
+# ------------------------------------------------------------------------------
+## git-less solution :(
+mkdir TaiSakuma_53X-met-130910-01
+cd TaiSakuma_53X-met-130910-01
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/MetType1Corrections_cff.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/TauMetCorrections_cff.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/caloMETCorrections_cff.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/correctedMet_cff.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/correctionTermsCaloMet_cff.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/correctionTermsPfMetShiftXY_cff.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/correctionTermsPfMetType0PFCandidate_cff.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/correctionTermsPfMetType0RecoTrack_cff.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/correctionTermsPfMetType1Type2_cff.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/pfMETCorrectionType0_cfi.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/pfMETCorrections_cff.py
+wget --no-check-certificate https://github.com/TaiSakuma/cmssw/raw/53X-met-130910-01/JetMETCorrections/Type1MET/python/pfMETsysShiftCorrections_cfi.py
+cp *.py ../JetMETCorrections/Type1MET/python/
+cd ..
+rm -rf TaiSakuma_53X-met-130910-01
+
+
 # ------------------------------------------------------------------------------
 # MVA MET
 # https://twiki.cern.ch/twiki/bin/view/CMS/MVAMet
@@ -84,7 +110,9 @@ addpkg JetMETCorrections/Type1MET V04-06-09-02
 #cd DataFormats/JetReco
 #cvs up -r 1.1 interface/PileupJetIdentifier.h
 #cvs up -r 1.1 src/PileupJetIdentifier.cc
-#cd ..
+#cvs up -r 1.67 src/classes.h
+#cvs up -r 1.71 src/classes_def.xml
+#cd -
 #
 #addpkg RecoJets/JetProducers  # refer METPU_5_3_X_v4
 #cvs co -r HEAD RecoJets/JetProducers/data
@@ -97,7 +125,7 @@ addpkg JetMETCorrections/Type1MET V04-06-09-02
 #cvs up -r HEAD python/PileupJetIDCutParams_cfi.py
 #cvs up -r HEAD python/PileupJetIDParams_cfi.py
 #cvs up -r HEAD python/PileupJetID_cfi.py
-#cd ..
+#cd -
 #
 ### 2. Get MVA MET stuff
 ##addpkg DataFormats/METReco  # refer b5_3_X_cvMEtCorr_2013Feb22
@@ -108,7 +136,10 @@ addpkg JetMETCorrections/Type1MET V04-06-09-02
 #cvs up -r 1.3 interface/PFMEtSignCovMatrix.h
 #cvs up -r 1.1 src/MVAMEtData.cc
 #cvs up -r 1.2 src/SigInputObj.cc
-#cd ..
+#cvs up -r 1.36 src/classes.h
+#cvs up -r 1.41 src/classes_def.xml
+#sed -i 's@class name="HcalNoiseSummary" ClassVersion="14"@class name="HcalNoiseSummary" ClassVersion="11"@' src/classes_def.xml
+#cd -
 #
 #addpkg RecoMET/METAlgorithms  # refer V03-04-07
 #cd RecoMET/METAlgorithms
@@ -118,9 +149,15 @@ addpkg JetMETCorrections/Type1MET V04-06-09-02
 #cvs up -r 1.7 interface/SignCaloSpecificAlgo.h
 #cvs up -r 1.3 interface/significanceAlgo.h
 #cvs up -r 1.11 src/SignCaloSpecificAlgo.cc
-#cd ..
+#cd -
 #
 #addpkg RecoTauTag/RecoTau V01-05-07-00
+#
+### 3. Get noPU MET stuff
+#cd JetMETCorrections/METPUSubtraction
+#cvs up -r 1.2 interface/noPileUpMEtAuxFunctions.h
+#cvs up -r 1.2 src/noPileUpMEtAuxFunctions.cc
+#cd -
 
 
 ## Finish up

@@ -78,6 +78,7 @@ from PhysicsTools.PatAlgos.tools.pfTools import *
 
 postfix = "PFlow"
 jetAlgo = "AK5"
+inputJetCorrPayload = "AK5PFchs"
 inputJetCorrLabel = ['L1FastJet', 'L2Relative', 'L3Absolute']
 if isData:
     inputJetCorrLabel = ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']
@@ -93,7 +94,7 @@ usePF2PAT(process,
     jetAlgo=jetAlgo, 
     runOnMC=(not isData), 
     postfix=postfix, 
-    jetCorrections=('AK5PFchs', inputJetCorrLabel),
+    jetCorrections=(inputJetCorrPayload, inputJetCorrLabel),
     pvCollection=cms.InputTag('goodOfflinePrimaryVertices'),
     typeIMetCorrections=True, 
     outputModules=['out'])
@@ -101,6 +102,23 @@ getattr(process,"pfPileUp"+postfix).checkClosestZVertex = False
 
 # to use particle-based isolation in patDefaultSequence
 usePFIso( process )
+
+## There are 3 corrections one can apply to the MET object, type-0, type-1 and type-2
+## your final MET object can be type-1, type-0+1, type-1+2, or type-0+1+2
+## a combination of the following instructions will allow you to get the type of MET that you desire in your
+## analysis
+
+##to add type-0 corrections to your type-1 corrected MET uncomment the following:
+# getattr(process,'patType1CorrectedPFMet'+postfix).srcType1Corrections = cms.VInputTag(
+#     cms.InputTag("patPFJetMETtype1p2Corr"+postfix,"type1"),
+#     cms.InputTag("patPFMETtype0Corr"+postfix),
+#     )
+# getattr(process,'patType1p2CorrectedPFMet'+postfix).srcType1Corrections = cms.VInputTag(
+#     cms.InputTag("patPFJetMETtype1p2Corr"+postfix,"type1"),
+#     cms.InputTag("patPFMETtype0Corr"+postfix),
+#     )
+## to add type-2 corrections to your type-1 or type-0+1 corrected MET uncomment the following:
+# getattr(process,'patMETs'+postfix).metSource = 'patType1p2CorrectedPFMet'+postfix
 
 # to run second PF2PAT+PAT with different postfix uncomment the following lines
 # and add the corresponding sequence to the path
@@ -248,6 +266,83 @@ process.p_tobtecfakesFilters = cms.Path( process.tobtecfakesFilters )
 
 
 # ------------------------------------------------------------------------------
+# MET corrections
+# taken from: https://github.com/TaiSakuma/WorkBookMet/blob/master/corrMet_cfg.py
+# ------------------------------------------------------------------------------
+##____________________________________________________________________________||
+process.load("JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff")
+
+if not isData:
+    process.corrPfMetType1.jetCorrLabel = cms.string("ak5PFL1FastL2L3")
+else:
+    process.corrPfMetType1.jetCorrLabel = cms.string("ak5PFL1FastL2L3Residual")
+
+##____________________________________________________________________________||
+process.load("JetMETCorrections.Type1MET.correctionTermsPfMetType0PFCandidate_cff")
+
+##____________________________________________________________________________||
+process.load("JetMETCorrections.Type1MET.correctionTermsPfMetType0RecoTrack_cff")
+
+##____________________________________________________________________________||
+process.load("JetMETCorrections.Type1MET.correctionTermsPfMetShiftXY_cff")
+
+if not isData:
+    process.corrPfMetShiftXY.parameter = process.pfMEtSysShiftCorrParameters_2012runABCDvsNvtx_mc
+else:
+    process.corrPfMetShiftXY.parameter = process.pfMEtSysShiftCorrParameters_2012runABCDvsNvtx_data
+
+##____________________________________________________________________________||
+process.load("JetMETCorrections.Type1MET.correctedMet_cff")
+
+##____________________________________________________________________________||
+corrMetSequence = cms.Sequence(
+    process.correctionTermsPfMetType1Type2 +
+    process.correctionTermsPfMetType0RecoTrack +
+    process.correctionTermsPfMetType0PFCandidate +
+    process.correctionTermsPfMetShiftXY +
+    #process.correctionTermsCaloMet +
+    #process.caloMetT1 + 
+    #process.caloMetT1T2 + 
+    process.pfMetT0rt +
+    process.pfMetT0rtT1 +
+    process.pfMetT0pc +
+    process.pfMetT0pcT1 +
+    process.pfMetT0rtTxy +
+    process.pfMetT0rtT1Txy +
+    process.pfMetT0pcTxy +
+    process.pfMetT0pcT1Txy +
+    process.pfMetT1 +
+    process.pfMetT1Txy
+)
+corrMetOutputCommands = cms.untracked.vstring(
+    "keep *_pfMetT*__*",
+)
+process.p += corrMetSequence
+process.out.outputCommands += corrMetOutputCommands
+
+
+# ------------------------------------------------------------------------------
+# MVA MET
+# ------------------------------------------------------------------------------
+process.load('JetMETCorrections.METPUSubtraction.mvaPFMET_leptons_cff')
+process.pfMEtMVA.verbosity = 0
+process.p_mvaPFMET = cms.Path(process.pfMEtMVAsequence)
+process.out.outputCommands.extend(["keep *_pfMEtMVA_*_*"])
+
+
+# ------------------------------------------------------------------------------
+# noPU MET
+# ------------------------------------------------------------------------------
+process.load('JetMETCorrections.METPUSubtraction.noPileUpPFMET_cff')
+#process.load('JetMETCorrections.METPUSubtraction.noPileUpPFchsMET_cff')
+process.noPileUpPFMEtSequence.remove(process.jvfJetIdForNoPileUpPFMEt)
+process.p_noPUPFMET = cms.Path(process.noPileUpPFMEtSequence)
+#process.p_noPUPFMET = cms.Path(process.noPileUpPFMEtSequence + noPileUpPFchsMEtSequence)
+process.out.outputCommands.extend(["keep *_noPileUpPFMEt_*_*", "keep *_noPileUpPFchsMEt_*_*"])
+process.out.outputCommands.extend(["keep *_puJetIdForNoPileUpPFMEt_*_*", "keep *_puJetIdForNoPileUpPFchsMEt_*_*"])
+
+
+# ------------------------------------------------------------------------------
 # User stuff
 # ------------------------------------------------------------------------------
 process.pfPileUpFlag = cms.EDProducer("PFPileUpFlag",
@@ -286,14 +381,6 @@ userOutputCommands = cms.untracked.vstring(
 )
 process.p += userSequence
 process.out.outputCommands += userOutputCommands
-
-
-# ------------------------------------------------------------------------------
-# MVA MET
-# ------------------------------------------------------------------------------
-#process.load('JetMETCorrections.METPUSubtraction.mvaPFMET_leptons_cff')
-#process.p_mvaPFMET = cms.Path(process.pfMEtMVAsequence)
-#process.out.outputCommands.extend(["keep *_pfMEtMVA_*_*"])
 
 
 ## ------------------------------------------------------

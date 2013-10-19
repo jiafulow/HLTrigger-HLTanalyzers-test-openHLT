@@ -97,7 +97,7 @@ process.maxEvents = cms.untracked.PSet(
 # enable the TrigReport and TimeReport
 process.options = cms.untracked.PSet(
     wantSummary = cms.untracked.bool( outputSummary ),
-    SkipEvent = cms.untracked.vstring('ProductNotFound')
+    #SkipEvent = cms.untracked.vstring('ProductNotFound')
 )
 
 
