@@ -9,5 +9,3 @@ HLTrigger-HLTanalyzers-test-openHLT
 
 [ ] Check sanity of PFNoPU cleaning
 
-[ ] Add PAT-only option in openHLT2PAT.py
-

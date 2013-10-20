@@ -5,14 +5,17 @@
 # modified for use with OpenHLT
 ################################################################################
 
-process = cms.Process("PAT")
+#process = cms.Process("PAT")
 #isData=True
 
 ## MessageLogger
 #process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 ## Options and Output Report
-process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
+process.options = cms.untracked.PSet(
+    wantSummary = cms.untracked.bool( True ),
+    SkipEvent = cms.untracked.vstring('ProductNotFound')
+)
 
 ## Source
 #process.source = cms.Source("PoolSource",

@@ -1,0 +1,124 @@
+# This is the python configuration file template for openHLT
+# It is not intended to run directly with cmsRun
+# openHLT.py reads this file and creates the actual configuration file according to the user's requests
+
+import os, sys, ConfigParser, socket
+try: import FWCore.ParameterSet.Config as cms
+except ImportError:
+    print 'Cannot import CMSSW python modules. Did you forget to "cmsenv"?'
+    sys.exit()
+#import FWCore.Utilities.Exception as cmsexception #didn't work
+
+# print out the OS
+try: print file("/etc/redhat-release").read().strip()
+except: pass
+
+#Configuration options not meant to be modified from command line (at least for the time being)
+outputRAW=False
+outputLess=True
+outputSummary=True
+#hltProcName="HLT3"
+hltProcName="PAT3"
+#runOpen=False#True #ignore all filter decisions, true for testing
+
+#Configuration options to be modified from command line by openHLT2PAT.py
+openHLT2PAT=False
+
+#from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
+#process.load("setup_cff")
+process = cms.Process("PAT")
+
+
+#-- Command line options -> configuration code injection and script configuration code -------
+interpreter=sys.argv.pop(0)
+myname=sys.argv.pop(0)
+
+#####################################################################################
+# vvvvvvvvvvvv configuration options injected by openHLT.py, as requested by the user
+$CONFIG
+
+# vvvvvvvvvvvvvv other code injected by openHLT.py (if any), as requested by the user
+$OTHERCHANGES
+
+#####################################################################################
+
+if isCrabJob:
+    print "using crab specified filename"
+    ofile = "OUTPUTFILE"
+
+if ofile == "":   # output file name must be given
+    raise Exception("["+myname+"] Output file not given")
+
+if runProducers:
+        print "** Will run producers **"
+        print "Open mode:", runOpen
+else:
+        print "** Filter mode **"
+# -- Configuration code ends here -----------------------------------------------------------
+
+# drop empty strings
+ifiles = filter(None, ifiles)
+
+# run two-file solution
+if len(ifiles) == 1 and ifiles[0].endswith(".py"):
+    exec "from %s import ifiles as ifiles_, isecfiles as isecfiles_" % (ifiles[0][:-3])
+    ifiles = ifiles_
+    isecfiles = isecfiles_
+else:
+    isecfiles = []
+
+filePrefex="file:"
+if(ifiles[0].find("/store/")==0 or ifiles[0].find("/eos/")==0 or ifiles[0].find("root://")==0):
+    filePrefex=""
+if(ifiles[0].find("/castor/")==0):
+    filePrefex="rfio:"
+    
+process.source = cms.Source("PoolSource",
+                            fileNames = cms.untracked.vstring(),
+                            secondaryFileNames = cms.untracked.vstring(),
+                            eventsToProcess =cms.untracked.VEventRange()
+                            )
+
+print "Input/output file(s):\n--------------"
+for i in range(len(ifiles)):
+    fname=filePrefex+ifiles[i].strip()
+    print "< :",fname
+    process.source.fileNames.extend([fname,])
+for i in range(len(isecfiles)):
+    fname=filePrefex+isecfiles[i].strip()
+    #print "< :",fname
+    process.source.secondaryFileNames.extend([fname,])
+print "> : ("+os.environ["USER"]+"@"+socket.gethostname()+":) "+ofile
+print "--------------"
+if verbose: print "Maximum number of events:", maxNrEvents
+
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(maxNrEvents)
+)
+
+# message logger
+process.load("FWCore.MessageLogger.MessageLogger_cfi")
+process.MessageLogger.cerr.FwkReport = cms.untracked.PSet(
+    reportEvery = cms.untracked.int32(500),
+    limit = cms.untracked.int32(10000000)
+)
+
+# override the process name
+process.setName_(hltProcName)
+
+
+#####################################################################################
+# vvvvvv PAT configurations injected by openHLT.py (if any), as requested by the user
+$PATCONFIG
+
+#####################################################################################
+
+# version specific customizations
+#import os
+#cmsswVersion = os.environ['CMSSW_VERSION']
+
+# ---- dump ----
+dump = open('dump.py' if isData else 'dumpMC.py', 'w')
+dump.write( process.dumpPython() )
+dump.close()
+
