@@ -84,10 +84,10 @@ for i in range(len(ifiles)):
     fname=filePrefex+ifiles[i].strip()
     print "< :",fname
     process.source.fileNames.extend([fname,])
-for i in range(len(isecfiles)):
-    fname=filePrefex+isecfiles[i].strip()
-    #print "< :",fname
-    process.source.secondaryFileNames.extend([fname,])
+#for i in range(len(isecfiles)):
+#    fname=filePrefex+isecfiles[i].strip()
+#    #print "< :",fname
+#    process.source.secondaryFileNames.extend([fname,])
 print "> : ("+os.environ["USER"]+"@"+socket.gethostname()+":) "+ofile
 print "--------------"
 if verbose: print "Maximum number of events:", maxNrEvents

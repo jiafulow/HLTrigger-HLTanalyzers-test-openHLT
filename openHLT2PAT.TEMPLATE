@@ -93,13 +93,13 @@ if isData:
 # Nota Bene: current JetMET version of PFNoPU leaves about 20% pile-up charged hadrons untouched. This compromise was necessary to avoid over-subtracting high pT tracks from jets. The L1chs corrections account for these remaining pile-up charged hadrons so the following settings must be enabled (these are different from lepton isolation settings)
 # https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#JetEnCorPFnoPU2012
 usePF2PAT(process,
-    runPF2PAT=True, 
-    jetAlgo=jetAlgo, 
-    runOnMC=(not isData), 
-    postfix=postfix, 
+    runPF2PAT=True,
+    jetAlgo=jetAlgo,
+    runOnMC=(not isData),
+    postfix=postfix,
     jetCorrections=(inputJetCorrPayload, inputJetCorrLabel),
     pvCollection=cms.InputTag('goodOfflinePrimaryVertices'),
-    typeIMetCorrections=True, 
+    typeIMetCorrections=True,
     outputModules=['out'])
 getattr(process,"pfPileUp"+postfix).checkClosestZVertex = False
 
@@ -186,7 +186,7 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
                                                    'keep recoPFCandidates_particleFlow_*_*',
                                                    *patEventContentNoCleaning)
 
-process.out.outputCommands.extend( ['keep *_offlinePrimaryVertices*_*_*', 
+process.out.outputCommands.extend( ['keep *_offlinePrimaryVertices*_*_*',
                                     'keep *_goodOfflinePrimaryVertices*_*_*',
                                     'keep double_*_rho_*',
                                     'drop *_selectedPatJetsForMETtype1p2CorrPFlow_*_*',
@@ -304,8 +304,8 @@ corrMetSequence = cms.Sequence(
     process.correctionTermsPfMetType0PFCandidate +
     process.correctionTermsPfMetShiftXY +
     #process.correctionTermsCaloMet +
-    #process.caloMetT1 + 
-    #process.caloMetT1T2 + 
+    #process.caloMetT1 +
+    #process.caloMetT1T2 +
     process.pfMetT0rt +
     process.pfMetT0rtT1 +
     process.pfMetT0pc +
@@ -320,29 +320,121 @@ corrMetSequence = cms.Sequence(
 corrMetOutputCommands = cms.untracked.vstring(
     "keep *_pfMetT*__*",
 )
-process.p += corrMetSequence
+process.p_corrMet = cms.Path(corrMetSequence)
 process.out.outputCommands += corrMetOutputCommands
 
 
 # ------------------------------------------------------------------------------
-# MVA MET
+# PileupJetId
+# taken from RecoJets/JetProducers/python/PileupJetID_cfi.py
+# ------------------------------------------------------------------------------
+from RecoJets.JetProducers.PileupJetIDParams_cfi import full, full_53x, cutbased
+
+pileupJetIdProducer = cms.EDProducer('PileupJetIdProducer',
+    produceJetIds = cms.bool(True),
+    jetids = cms.InputTag(""),
+    runMvas = cms.bool(True),
+    jets = cms.InputTag("selectedPatJetsPFlow"),
+    vertexes = cms.InputTag("offlinePrimaryVertices"),
+    algos = cms.VPSet(full, cutbased),
+
+    rho     = cms.InputTag("kt6PFJets","rho"),
+    jec     = cms.string("AK5PF"),
+    applyJec = cms.bool(False),
+    inputIsCorrected = cms.bool(True),
+    residualsFromTxt = cms.bool(False),
+    residualsTxt     = cms.FileInPath("RecoJets/JetProducers/data/dummy.txt"),
+)
+
+pileupJetIdProducerChs = cms.EDProducer('PileupJetIdProducer',
+    produceJetIds = cms.bool(True),
+    jetids = cms.InputTag(""),
+    runMvas = cms.bool(True),
+    jets = cms.InputTag("selectedPatJetsPFlow"),
+    vertexes = cms.InputTag("offlinePrimaryVertices"),
+    algos = cms.VPSet(full_53x, cutbased),
+
+    rho     = cms.InputTag("kt6PFJets","rho"),
+    jec     = cms.string("AK5PFchs"),
+    applyJec = cms.bool(False),
+    inputIsCorrected = cms.bool(True),
+    residualsFromTxt = cms.bool(False),
+    residualsTxt     = cms.FileInPath("RecoJets/JetProducers/data/dummy.txt"),
+)
+process.pileupJetIdProducerChsPFlow = pileupJetIdProducerChs.clone(
+    jets = cms.InputTag("pfNoTauPFlow"),  # PAT jets are no longer supported
+    inputIsCorrected = False,
+    applyJec = True,
+)
+process.p += process.pileupJetIdProducerChsPFlow
+process.out.outputCommands.extend(["keep *_pileupJetIdProducerChsPFlow_*_*"])
+
+
+# ------------------------------------------------------------------------------
+# MVA MET (depends on PileupJetId)
 # ------------------------------------------------------------------------------
 process.load('JetMETCorrections.METPUSubtraction.mvaPFMET_leptons_cff')
+if isData:
+    process.calibratedAK5PFJetsForPFMEtMVA.correctors = cms.vstring("ak5PFL1FastL2L3Residual")
+else:
+    process.calibratedAK5PFJetsForPFMEtMVA.correctors = cms.vstring("ak5PFL1FastL2L3")
+#process.pfMEtMVA.JetIdParams = full_53x.JetIdParams
 process.pfMEtMVA.verbosity = 0
-process.p_mvaPFMET = cms.Path(process.pfMEtMVAsequence)
-process.out.outputCommands.extend(["keep *_pfMEtMVA_*_*"])
+process.pileupJetIdProducerForPFMEtMVA = pileupJetIdProducer.clone(
+    jets = cms.InputTag("calibratedAK5PFJetsForPFMEtMVA"),
+)
+full_met_53x = cms.PSet(
+    impactParTkThreshold = cms.double(0.),
+    cutBased = cms.bool(False),
+    tmvaWeights = cms.string("RecoJets/JetProducers/data/TMVAClassificationCategory_JetID_MET_53X_Dec2012.weights.xml"),
+    tmvaMethod = cms.string("JetID"),
+    version = cms.int32(-1),
+    tmvaVariables = cms.vstring(
+        "nvtx",
+        "jetPt",
+        "jetEta",
+        "jetPhi",
+        "dZ",
+        "beta",
+        "betaStar",
+        "nCharged",
+        "nNeutrals",
+        "dR2Mean",
+        "ptD",
+        "frac01",
+        "frac02",
+        "frac03",
+        "frac04",
+        "frac05",
+    ),
+    tmvaSpectators = cms.vstring(),
+
+    JetIdParams = full_53x.JetIdParams,  # the cut values are hardcoded in JetMETCorrections/METPUSubtraction/src/mvaMEtUtilities.cc
+    label = cms.string("full")
+)
+process.pileupJetIdProducerForPFMEtMVA2 = pileupJetIdProducer.clone(
+    jets = cms.InputTag("calibratedAK5PFJetsForPFMEtMVA"),
+    algos = cms.VPSet(full_met_53x),
+)
+
+#process.p_mvaPFMET = cms.Path(process.pfMEtMVAsequence)
+process.p_mvaPFMET = cms.Path(process.pfMEtMVAsequence + process.pileupJetIdProducerForPFMEtMVA + process.pileupJetIdProducerForPFMEtMVA2)
+#process.out.outputCommands.extend(["keep *_pfMEtMVA_*_*"])
+process.out.outputCommands.extend(["keep *_pfMEtMVA_*_*", "keep *_pileupJetIdProducerForPFMEtMVA_*_*", "keep *_pileupJetIdProducerForPFMEtMVA2_*_*"])
 
 
 # ------------------------------------------------------------------------------
 # noPU MET
 # ------------------------------------------------------------------------------
 process.load('JetMETCorrections.METPUSubtraction.noPileUpPFMET_cff')
-#process.load('JetMETCorrections.METPUSubtraction.noPileUpPFchsMET_cff')
+if isData:
+    process.calibratedAK5PFJetsForNoPileUpPFMEt.correctors = cms.vstring("ak5PFL1FastL2L3Residual")
+else:
+    process.calibratedAK5PFJetsForNoPileUpPFMEt.correctors = cms.vstring("ak5PFL1FastL2L3")
+process.puJetIdForNoPileUpPFMEt.algos = cms.VPSet(full_53x, cutbased)
 process.noPileUpPFMEtSequence.remove(process.jvfJetIdForNoPileUpPFMEt)
 process.p_noPUPFMET = cms.Path(process.noPileUpPFMEtSequence)
-#process.p_noPUPFMET = cms.Path(process.noPileUpPFMEtSequence + noPileUpPFchsMEtSequence)
-process.out.outputCommands.extend(["keep *_noPileUpPFMEt_*_*", "keep *_noPileUpPFchsMEt_*_*"])
-process.out.outputCommands.extend(["keep *_puJetIdForNoPileUpPFMEt_*_*", "keep *_puJetIdForNoPileUpPFchsMEt_*_*"])
+process.out.outputCommands.extend(["keep *_noPileUpPFMEt_*_*", "keep *_puJetIdForNoPileUpPFMEt_*_*"])
 
 
 # ------------------------------------------------------------------------------
