@@ -70,7 +70,7 @@ if(ifiles[0].find("/store/")==0 or ifiles[0].find("/eos/")==0 or ifiles[0].find(
     filePrefex=""
 if(ifiles[0].find("/castor/")==0):
     filePrefex="rfio:"
-    
+
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(),
                             secondaryFileNames = cms.untracked.vstring(),
@@ -103,14 +103,14 @@ process.options = cms.untracked.PSet(
 
 if runProducers==False:
     hltProcName=hltProcName+"PB"
-    
+
 process.load('Configuration/EventContent/EventContent_cff')
 process.output = cms.OutputModule("PoolOutputModule",
                                   splitLevel = cms.untracked.int32(0),
                                   outputCommands =cms.untracked.vstring("drop *",
                                                                         "keep *_TriggerResults_*_*",
                                                                         "keep *_hltTriggerSummaryAOD_*_*"),
-                                  
+
                                   fileName = cms.untracked.string(ofile),
                                   dataset = cms.untracked.PSet(dataTier = cms.untracked.string('HLTDEBUG'),)
                                   )
@@ -268,7 +268,7 @@ def findFiltersAlreadyIgnored(path,process): #there has got to be a better way..
     filtersAlreadyIgnored=[]
     pathSeq= path.dumpPython(options=cms.Options())
     for module in pathSeq.split("+"):
-       # print "mod one ",module,"test"        
+       # print "mod one ",module,"test"
         if module.startswith("cms.ignore"):
             module=module.lstrip("cms.ignore")
             module=module.lstrip("(")
@@ -319,7 +319,7 @@ if runOpen:
             if type(filt).__name__=="EDFilter":
                 if not filterName.startswith("dontignore"):
                     path.replace(filt,cms.ignore(filt))
-            
+
 
 def cleanList(input,blacklist):
     output = set()

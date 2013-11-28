@@ -203,6 +203,7 @@ process.out.outputCommands.extend( ['keep *_offlinePrimaryVertices*_*_*',
                                     "keep *_ak5GenJets*__*",
                                     "keep *_genMet*__*",
                                     "keep *_pfMet__*",
+                                    "keep *_pfMETPFlow__*",
                                     "keep *_met__*",
                                     ] )
 

@@ -5,7 +5,6 @@ HLTrigger-HLTanalyzers-test-openHLT
 
 [ ] Add jet resolution smearing for MC (recommended for MET)
 
-[ ] Adapt Type-0, MVA MET, NoPU MET to run on PF2PAT inputs
-
 [ ] Check sanity of PFNoPU cleaning
 
+[ ] Update HBHE noise filter config

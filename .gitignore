@@ -42,6 +42,7 @@ log
 *.root
 
 # Backup
+*~
 *.bak
 *.orig
 *.patch

@@ -10197,6 +10197,10 @@ process.hltL1sL1ETM100 = cms.EDFilter( "HLTLevel1GTSeed",
     L1GtObjectMapTag = cms.InputTag( "hltL1GtObjectMap" ),
     L1TechTriggerSeeding = cms.bool( False )
 )
+process.hltPreMET300 = cms.EDFilter( "HLTPrescaler",
+    L1GtReadoutRecordTag = cms.InputTag( "hltGtDigis" ),
+    offset = cms.uint32( 0 )
+)
 process.hltPreMET300HBHENoiseCleaned = cms.EDFilter( "HLTPrescaler",
     L1GtReadoutRecordTag = cms.InputTag( "hltGtDigis" ),
     offset = cms.uint32( 0 )
@@ -10417,6 +10421,7 @@ process.HLT_MET120_v13 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ET
 process.HLT_MET120_HBHENoiseCleaned_v6 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40ORETM50 + process.hltPreMET120HBHENoiseCleaned + process.HLTRecoMETSequence + process.hltMET120 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.HLTEndSequence )
 process.HLT_MET200_v12 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM70 + process.hltPreMET200 + process.HLTRecoMETSequence + process.hltMET200 + process.HLTEndSequence )
 process.HLT_MET200_HBHENoiseCleaned_v5 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM70 + process.hltPreMET200HBHENoiseCleaned + process.HLTRecoMETSequence + process.hltMET200 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean100 + process.HLTEndSequence )
+process.HLT_MET300_v4 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM100 + process.hltPreMET300 + process.HLTRecoMETSequence + process.hltMET300 + process.HLTEndSequence )
 process.HLT_MET300_HBHENoiseCleaned_v5 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM100 + process.hltPreMET300HBHENoiseCleaned + process.HLTRecoMETSequence + process.hltMET300 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean150 + process.HLTEndSequence )
 process.HLT_MET400_v7 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM100 + process.hltPreMET400 + process.HLTRecoMETSequence + process.hltMET400 + process.HLTEndSequence )
 process.HLT_MET400_HBHENoiseCleaned_v5 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM100 + process.hltPreMET400HBHENoiseCleaned + process.HLTRecoMETSequence + process.hltMET400 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean200 + process.HLTEndSequence )

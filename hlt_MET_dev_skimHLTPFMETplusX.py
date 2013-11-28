@@ -10197,6 +10197,10 @@ process.hltL1sL1ETM100 = cms.EDFilter( "HLTLevel1GTSeed",
     L1GtObjectMapTag = cms.InputTag( "hltL1GtObjectMap" ),
     L1TechTriggerSeeding = cms.bool( False )
 )
+process.hltPreMET300 = cms.EDFilter( "HLTPrescaler",
+    L1GtReadoutRecordTag = cms.InputTag( "hltGtDigis" ),
+    offset = cms.uint32( 0 )
+)
 process.hltPreMET300HBHENoiseCleaned = cms.EDFilter( "HLTPrescaler",
     L1GtReadoutRecordTag = cms.InputTag( "hltGtDigis" ),
     offset = cms.uint32( 0 )
@@ -10279,15 +10283,219 @@ process.hltPreL1ETM100 = cms.EDFilter( "HLTPrescaler",
 )
 
 # New
-process.hltMetJetIDClean = cms.EDProducer('HLTCaloMETCleanerUsingJetID',
+process.hltCaloJetIDProducer2 = cms.EDProducer('HLTCaloJetIDProducer2',
+  min_N90 = cms.int32(-2),
+  min_N90hits = cms.int32(2),
+  min_EMF = cms.double(1e-06),
+  max_EMF = cms.double(999),
+  inputTag = cms.InputTag('hltAntiKT5CaloJets'),
+  JetIDParams = cms.PSet(
+    useRecHits = cms.bool(True),
+    hbheRecHitsColl = cms.InputTag('hltHbhereco'),
+    hoRecHitsColl = cms.InputTag('hltHoreco'),
+    hfRecHitsColl = cms.InputTag('hltHfreco'),
+    ebRecHitsColl = cms.InputTag('hltEcalRecHitAll', 'EcalRecHitsEB'),
+    eeRecHitsColl = cms.InputTag('hltEcalRecHitAll', 'EcalRecHitsEE')
+  )
+)
+
+process.hltPFJetIDProducer2 = cms.EDProducer('HLTPFJetIDProducer2',
+  minPt = cms.double(20),
+  CHF = cms.double(-99),
+  NHF = cms.double(99),
+  CEF = cms.double(99),
+  NEF = cms.double(99),
+  NCH = cms.int32(0),
+  NTOT = cms.int32(0),
+  inputTag = cms.InputTag('hltAntiKT5PFJets')
+)
+
+process.hltMetCleanUsingJetID = cms.EDProducer('HLTCaloMETCleanerUsingJetID',
   usePt = cms.bool(False),
   excludePFMuons = cms.bool(False),
-  minPt = cms.double(0),
-  maxEta = cms.double(9999),
+  minPt = cms.double(0.),
+  maxEta = cms.double(999.),
   metLabel = cms.InputTag('hltMet'),
   jetsLabel = cms.InputTag('hltAntiKT5CaloJets'),
-  goodJetsLabel = cms.InputTag('hltCaloJetIDPassed')
+  goodJetsLabel = cms.InputTag('hltCaloJetIDProducer2')
 )
+
+process.hltPFMETProducer2 = cms.EDProducer('HLTMhtProducer2',
+  usePt = cms.bool(True),
+  useTracks = cms.bool(False),
+  usePFRecTracks = cms.bool(False),
+  usePFCandidatesCharged = cms.bool(False),
+  usePFCandidates = cms.bool(False),
+  excludePFMuons = cms.bool(False),
+  minPtJet = cms.double(0),
+  maxEtaJet = cms.double(999.),
+  jetsLabel = cms.InputTag('hltAntiKT5PFJets'),
+  tracksLabel = cms.InputTag(''),
+  pfRecTracksLabel = cms.InputTag(''),
+  pfCandidatesLabel = cms.InputTag('')
+)
+
+process.hltPFMETNoMuProducer2 = cms.EDProducer('HLTMhtProducer2',
+  usePt = cms.bool(True),
+  useTracks = cms.bool(False),
+  usePFRecTracks = cms.bool(False),
+  usePFCandidatesCharged = cms.bool(False),
+  usePFCandidates = cms.bool(False),
+  excludePFMuons = cms.bool(True),
+  minPtJet = cms.double(0),
+  maxEtaJet = cms.double(999.),
+  jetsLabel = cms.InputTag('hltAntiKT5PFJets'),
+  tracksLabel = cms.InputTag(''),
+  pfRecTracksLabel = cms.InputTag(''),
+  pfCandidatesLabel = cms.InputTag('hltParticleFlow')
+)
+
+process.hltTrackMETProducer2 = cms.EDProducer('HLTMhtProducer2',
+  usePt = cms.bool(True),
+  useTracks = cms.bool(False),
+  usePFRecTracks = cms.bool(False),
+  usePFCandidatesCharged = cms.bool(True),
+  usePFCandidates = cms.bool(False),
+  excludePFMuons = cms.bool(False),
+  minPtJet = cms.double(0),
+  maxEtaJet = cms.double(999.),
+  jetsLabel = cms.InputTag('hltAntiKT5PFJets'),
+  tracksLabel = cms.InputTag(''),
+  pfRecTracksLabel = cms.InputTag(''),
+  pfCandidatesLabel = cms.InputTag('hltPFNoPileUp')
+)
+
+process.hltPFMETCleanUsingJetID = cms.EDProducer('HLTPFMETCleanerUsingJetID',
+  usePt = cms.bool(True),
+  excludePFMuons = cms.bool(False),
+  minPt = cms.double(0.),
+  maxEta = cms.double(999.),
+  metLabel = cms.InputTag('hltPFMETProducer2'),
+  jetsLabel = cms.InputTag('hltAntiKT5PFJets'),
+  goodJetsLabel = cms.InputTag('hltPFJetIDProducer2')
+)
+
+process.hltCaloJetMinDPhiMETFilter = cms.EDFilter('HLTCaloJetMinDPhiMETFilter',
+  saveTags = cms.bool(False),
+  usePt = cms.bool(True),
+  triggerType = cms.int32(85),
+  maxNJets = cms.int32(999),
+  minPt = cms.double(40),
+  maxEta = cms.double(2.6),
+  minDPhi = cms.double(0.5),
+  metLabel = cms.InputTag(''),
+  calometLabel = cms.InputTag('hltMetCleanUsingJetID'),
+  jetsLabel = cms.InputTag('hltCaloJetL1FastJetCorrected')
+)
+
+process.hltPFJetMinDPhiMETFilter = cms.EDFilter('HLTPFJetMinDPhiMETFilter',
+  saveTags = cms.bool(False),
+  usePt = cms.bool(True),
+  triggerType = cms.int32(85),
+  maxNJets = cms.int32(999),
+  minPt = cms.double(40),
+  maxEta = cms.double(2.6),
+  minDPhi = cms.double(0.5),
+  metLabel = cms.InputTag('hltPFMETProducer2'),
+  calometLabel = cms.InputTag(''),
+  jetsLabel = cms.InputTag('hltAK5PFJetL1FastL2L3Corrected')
+)
+
+process.hltMetCleanUsingJetID60 = cms.EDFilter( "HLT1CaloMET",
+  saveTags = cms.bool( True ),
+  MinPt = cms.double( 60.0 ),
+  MinN = cms.int32( 1 ),
+  MaxEta = cms.double( -1.0 ),
+  MinMass = cms.double( -1.0 ),
+  inputTag = cms.InputTag( "hltMetCleanUsingJetID" ),
+  MinE = cms.double( -1.0 ),
+  triggerType = cms.int32( 87 )
+)
+
+process.hltPFMETCleanUsingJetID60 = cms.EDFilter( "HLT1MET",
+  saveTags = cms.bool( True ),
+  MinPt = cms.double( 60.0 ),
+  MinN = cms.int32( 1 ),
+  MaxEta = cms.double( -1.0 ),
+  MinMass = cms.double( -1.0 ),
+  inputTag = cms.InputTag( "hltPFMETCleanUsingJetID" ),
+  MinE = cms.double( -1.0 ),
+  triggerType = cms.int32( 90 )
+)
+
+process.hltPFMET80MuORNoMu2 = cms.EDFilter('HLTMhtFilter2',
+  saveTags = cms.bool(False),
+  mhtLabels = cms.VInputTag('hltPFMETProducer2', 'hltPFMETNoMuProducer2'),
+  minMht = cms.vdouble(80, 80)
+)
+
+process.hltHTMHTProducer2 = cms.EDProducer('HLTHtMhtProducer2',
+  usePt = cms.bool(False),
+  useTracks = cms.bool(False),
+  usePFRecTracks = cms.bool(False),
+  usePFCandidatesCharged = cms.bool(False),
+  usePFCandidates = cms.bool(False),
+  excludePFMuons = cms.bool(False),
+  minNJetHt = cms.int32(0),
+  minNJetMht = cms.int32(0),
+  minPtJetHt = cms.double(40),
+  minPtJetMht = cms.double(30),
+  maxEtaJetHt = cms.double(3),
+  maxEtaJetMht = cms.double(5),
+  jetsLabel = cms.InputTag('hltCaloJetL1FastJetCorrected'),
+  tracksLabel = cms.InputTag(''),
+  pfRecTracksLabel = cms.InputTag(''),
+  pfCandidatesLabel = cms.InputTag('')
+)
+
+process.hltPFHTMHTProducer2 = cms.EDProducer('HLTHtMhtProducer2',
+  usePt = cms.bool(True),
+  useTracks = cms.bool(False),
+  usePFRecTracks = cms.bool(False),
+  usePFCandidatesCharged = cms.bool(False),
+  usePFCandidates = cms.bool(False),
+  excludePFMuons = cms.bool(False),
+  minNJetHt = cms.int32(0),
+  minNJetMht = cms.int32(0),
+  minPtJetHt = cms.double(40),
+  minPtJetMht = cms.double(30),
+  maxEtaJetHt = cms.double(3),
+  maxEtaJetMht = cms.double(5),
+  jetsLabel = cms.InputTag('hltAK5PFJetL1FastL2L3Corrected'),
+  tracksLabel = cms.InputTag(''),
+  pfRecTracksLabel = cms.InputTag(''),
+  pfCandidatesLabel = cms.InputTag('')
+)
+
+process.hltPFHTMHTNoPUProducer2 = cms.EDProducer('HLTHtMhtProducer2',
+  usePt = cms.bool(True),
+  useTracks = cms.bool(False),
+  usePFRecTracks = cms.bool(False),
+  usePFCandidatesCharged = cms.bool(False),
+  usePFCandidates = cms.bool(False),
+  excludePFMuons = cms.bool(False),
+  minNJetHt = cms.int32(0),
+  minNJetMht = cms.int32(0),
+  minPtJetHt = cms.double(40),
+  minPtJetMht = cms.double(30),
+  maxEtaJetHt = cms.double(3),
+  maxEtaJetMht = cms.double(5),
+  jetsLabel = cms.InputTag('hltAK5PFJetL1FastL2L3CorrectedNoPU'),
+  tracksLabel = cms.InputTag(''),
+  pfRecTracksLabel = cms.InputTag(''),
+  pfCandidatesLabel = cms.InputTag('')
+)
+
+process.hltPFHT350MET100ORMHT150Filter2 = cms.EDFilter('HLTHtMhtFilter2',
+  saveTags = cms.bool(False),
+  htLabels = cms.VInputTag('hltPFHTMHTNoPUProducer2', 'hltPFHTMHTNoPUProducer2'),
+  mhtLabels = cms.VInputTag('hltPFMETProducer2', 'hltPFHTMHTNoPUProducer2'),
+  minHt = cms.vdouble(350, 350),
+  minMht = cms.vdouble(100, 150),
+  minMeff = cms.vdouble(0),
+  meffSlope = cms.vdouble(1)
+)
+
 process.hltTrackMetProducer = cms.EDProducer('HLTTrackMETProducer',
   usePt = cms.bool(True),
   useJets = cms.bool(False),
@@ -10300,16 +10508,7 @@ process.hltTrackMetProducer = cms.EDProducer('HLTTrackMETProducer',
   pfJetsLabel = cms.InputTag('hltAK5PFJetL1FastL2L3Corrected'),
   pfRecTracksLabel = cms.InputTag('hltLightPFTracks')
 )
-process.hltMETJetIDClean60 = cms.EDFilter( "HLT1CaloMET",
-    saveTags = cms.bool( True ),
-    MinPt = cms.double( 60.0 ),
-    MinN = cms.int32( 1 ),
-    MaxEta = cms.double( -1.0 ),
-    MinMass = cms.double( -1.0 ),
-    inputTag = cms.InputTag( "hltMetJetIDClean" ),
-    MinE = cms.double( -1.0 ),
-    triggerType = cms.int32( 87 )
-)
+
 process.hltTrackMet10 = cms.EDFilter( "HLT1MET",
     saveTags = cms.bool( True ),
     MinPt = cms.double( 10.0 ),
@@ -10320,6 +10519,7 @@ process.hltTrackMet10 = cms.EDFilter( "HLT1MET",
     MinE = cms.double( -1.0 ),
     triggerType = cms.int32( 90 )
 )
+
 process.hltTrackMet30 = cms.EDFilter( "HLT1MET",
     saveTags = cms.bool( True ),
     MinPt = cms.double( 30.0 ),
@@ -10351,15 +10551,48 @@ process.hlt2PFMETTrackMETDPhi05 = cms.EDFilter( "HLT2METMET",
   MaxPt = cms.double(-1),
   MinN = cms.int32(1)
 )
-process.hltMinDPhiFilter = cms.EDFilter('HLTMinDPhiMETFilter',
+
+process.hltPFMET150Filter2 = cms.EDFilter('HLT1MET',
+  saveTags = cms.bool(True),
+  inputTag = cms.InputTag('hltPFMETProducer2'),
+  triggerType = cms.int32(90),
+  MinE = cms.double(-1),
+  MinPt = cms.double(150),
+  MinMass = cms.double(-1),
+  MaxEta = cms.double(-1),
+  MinN = cms.int32(1)
+)
+
+process.hltTrackMET10Filter2 = cms.EDFilter('HLT1MET',
+  saveTags = cms.bool(True),
+  inputTag = cms.InputTag('hltTrackMETProducer2'),
+  triggerType = cms.int32(10),
+  MinE = cms.double(-1),
+  MinPt = cms.double(150),
+  MinMass = cms.double(-1),
+  MaxEta = cms.double(-1),
+  MinN = cms.int32(1)
+)
+
+process.hlt2PFMET2TrackMET2DPhi05 = cms.EDFilter( "HLT2METMET",
   saveTags = cms.bool(False),
-  excludePFMuons = cms.bool(False),
-  maxNJets = cms.int32(999),
-  minPt = cms.double(30),
-  maxEta = cms.double(9999),
-  minDPhi = cms.double(0.5),
-  metLabel = cms.InputTag('hltPFMETProducer'),
-  jetsLabel = cms.InputTag('hltAK5PFJetL1FastL2L3Corrected')
+  originTag1 = cms.InputTag('hltPFMETProducer2'),
+  originTag2 = cms.InputTag('hltTrackMETProducer2'),
+  inputTag1 = cms.InputTag('hltPFMET150Filter2'),
+  inputTag2 = cms.InputTag('hltTrackMET10Filter2'),
+  triggerType1 = cms.int32(90),
+  triggerType2 = cms.int32(90),
+  MinDphi = cms.double(0.0),
+  MaxDphi = cms.double(0.5),
+  MinDeta = cms.double(1),
+  MaxDeta = cms.double(-1),
+  MinMinv = cms.double(1),
+  MaxMinv = cms.double(-1),
+  MinDelR = cms.double(1),
+  MaxDelR = cms.double(-1),
+  MinPt = cms.double(1),
+  MaxPt = cms.double(-1),
+  MinN = cms.int32(1)
 )
 
 process.HLTL1UnpackerSequence = cms.Sequence( process.hltGtDigis + process.hltGctDigis + process.hltL1GtObjectMap + process.hltL1extraParticles )
@@ -10417,6 +10650,7 @@ process.HLT_MET120_v13 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ET
 process.HLT_MET120_HBHENoiseCleaned_v6 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40ORETM50 + process.hltPreMET120HBHENoiseCleaned + process.HLTRecoMETSequence + process.hltMET120 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.HLTEndSequence )
 process.HLT_MET200_v12 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM70 + process.hltPreMET200 + process.HLTRecoMETSequence + process.hltMET200 + process.HLTEndSequence )
 process.HLT_MET200_HBHENoiseCleaned_v5 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM70 + process.hltPreMET200HBHENoiseCleaned + process.HLTRecoMETSequence + process.hltMET200 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean100 + process.HLTEndSequence )
+process.HLT_MET300_v4 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM100 + process.hltPreMET300 + process.HLTRecoMETSequence + process.hltMET300 + process.HLTEndSequence )
 process.HLT_MET300_HBHENoiseCleaned_v5 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM100 + process.hltPreMET300HBHENoiseCleaned + process.HLTRecoMETSequence + process.hltMET300 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean150 + process.HLTEndSequence )
 process.HLT_MET400_v7 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM100 + process.hltPreMET400 + process.HLTRecoMETSequence + process.hltMET400 + process.HLTEndSequence )
 process.HLT_MET400_HBHENoiseCleaned_v5 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM100 + process.hltPreMET400HBHENoiseCleaned + process.HLTRecoMETSequence + process.hltMET400 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean200 + process.HLTEndSequence )
@@ -10426,11 +10660,32 @@ process.HLT_L1ETM70_v2 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ET
 process.HLT_L1ETM100_v2 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM100 + process.hltPreL1ETM100 + process.HLTEndSequence )
 
 # New
-process.HLT_PFMET150_Changed_HBHENoiseCleaned_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.HLTEndSequence )
-process.HLT_PFMET150_Changed_HBHENoiseCleaned_JetIDCleaned_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.hltMetJetIDClean + process.hltMETJetIDClean60 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.HLTEndSequence )
-process.HLT_PFMET150_Changed_HBHENoiseCleaned_JetIDCleaned_minDPhi_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.hltMetJetIDClean + process.hltMETJetIDClean60 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.hltMinDPhiFilter + process.HLTEndSequence )
-process.HLT_PFMET150_Changed_HBHENoiseCleaned_JetIDCleaned_TrackMET30_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.hltMetJetIDClean + process.hltMETJetIDClean60 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.hltTrackMetProducer + process.hltTrackMet30 + process.HLTEndSequence )
-process.HLT_PFMET150_Changed_HBHENoiseCleaned_JetIDCleaned_TrackMETDPhi_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTHBHENoiseCleanerSequence + process.hltMetClean + process.hltMETClean60 + process.hltMetJetIDClean + process.hltMETJetIDClean60 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.hltTrackMetProducer + cms.ignore(process.hltTrackMet10) + process.hlt2PFMETTrackMETDPhi05 + process.HLTEndSequence )
+process.hltJetMETDevSequence = cms.Sequence(
+    process.hltCaloJetIDProducer2 +
+    process.hltPFJetIDProducer2 +
+    process.hltMetCleanUsingJetID +
+    process.hltPFMETProducer2 +
+    process.hltPFMETNoMuProducer2 +
+    process.hltTrackMETProducer2 +
+    process.hltPFMETCleanUsingJetID +
+    process.hltCaloJetMinDPhiMETFilter +
+    process.hltPFJetMinDPhiMETFilter +
+    process.hltMetCleanUsingJetID60 +
+    process.hltPFMETCleanUsingJetID60 +
+    process.hltPFMET80MuORNoMu2 +
+    process.hltHTMHTProducer2 +
+    process.hltPFHTMHTProducer2 +
+    process.hltPFHTMHTNoPUProducer2 +
+    process.hltPFHT350MET100ORMHT150Filter2 +
+    process.hltPFMET150Filter2 +
+    process.hltTrackMET10Filter2 +
+    process.hlt2PFMET2TrackMET2DPhi05 +
+    process.hltTrackMetProducer +
+    process.hltTrackMet10 +
+    process.hlt2PFMETTrackMETDPhi05
+    )
+
+process.HLT_PFMET150_JetMETDev_v1 = cms.Path( process.HLTBeginSequence + process.hltL1sL1ETM36ORETM40 + process.hltPrePFMET150 + process.HLTRecoMETSequence + process.hltMET80 + process.HLTPFL1FastL2L3ReconstructionSequence + process.hltPFMETProducer + process.hltPFMET150Filter + process.hltJetMETDevSequence + process.HLTEndSequence )
 
 
 process.source = cms.Source( "PoolSource",

@@ -72,7 +72,7 @@ if(ifiles[0].find("/store/")==0 or ifiles[0].find("/eos/")==0 or ifiles[0].find(
     filePrefex=""
 if(ifiles[0].find("/castor/")==0):
     filePrefex="rfio:"
-    
+
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(),
                             secondaryFileNames = cms.untracked.vstring(),

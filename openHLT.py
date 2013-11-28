@@ -129,7 +129,7 @@ if os.stat(hlt_module)[6]==0:
 
 if hlt_module[-3:] == ".py":
     hlt_module=hlt_module[:-3]
-print mprefx, "[i] HLT module:",hlt_module   
+print mprefx, "[i] HLT module:",hlt_module
 
 try: temp=open(oHLTconfig_template).read()
 except IOError:
@@ -160,7 +160,7 @@ print mprefx, "[i] wrote:", oHLTconfig_out
 if args.go:
 #     if not goFlag:
 #        print mprefx, "[w] cannot start cmsRun because at least one of the required files are missing"
-#     else:   
+#     else:
         if verbose: print mprefx, "[i] Starting cmsRun"
         cmd="time cmsRun "+oHLTconfig_out
         print cmd
