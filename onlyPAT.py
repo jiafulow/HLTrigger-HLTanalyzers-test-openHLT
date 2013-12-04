@@ -17,6 +17,7 @@ ofile=[]
 maxNrEvents=1000
 projectFile=""
 hlt_file="hlt.py"
+setup_file="setup_cff.py"
 oHLTconfig_template="openHLT.TEMPLATE"
 oPATconfig_template="onlyPAT.TEMPLATE"
 oHLTconfig_pattemplate="openHLT2PAT.TEMPLATE"
@@ -42,6 +43,11 @@ parser.add_argument('-t', '--hlt-config', action='store', metavar='FILE', #type=
                     default=hlt_file,
                     #required=True,
                     help="hlt configuration file (default: "+hlt_file+"). Note that the file must be in the same directory with this script.")
+
+parser.add_argument('-u', '--setup-config', action='store', metavar='FILE', #type=str,
+                    default=setup_file,
+                    #required=True,
+                    help="hlt setup file (default: "+setup_file+"). Note that the file must be in the same directory with this script.")
 
 parser.add_argument('-s', '--skim-cfi', action='store', metavar='FILE', #type=str,
                     default="",

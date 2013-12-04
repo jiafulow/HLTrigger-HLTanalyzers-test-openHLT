@@ -24,7 +24,7 @@ hltProcName="HLT3"
 openHLT2PAT=False
 
 from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
-process.load("setup_cff")
+process.load($SETUPFILE)
 
 
 #-- Command line options -> configuration code injection and script configuration code -------
