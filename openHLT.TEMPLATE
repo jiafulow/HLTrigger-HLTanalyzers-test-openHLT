@@ -59,7 +59,7 @@ ifiles = filter(None, ifiles)
 
 # run two-file solution
 if len(ifiles) == 1 and ifiles[0].endswith(".py"):
-    exec "from %s import ifiles as ifiles_, isecfiles as isecfiles_" % (ifiles[0][:-3])
+    exec "from %s import ifiles as ifiles_, isecfiles as isecfiles_" % (ifiles[0][:-3].replace("/","."))
     ifiles = ifiles_
     isecfiles = isecfiles_
 else:

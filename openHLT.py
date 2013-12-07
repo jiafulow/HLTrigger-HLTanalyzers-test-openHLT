@@ -46,6 +46,11 @@ parser.add_argument('-u', '--setup-config', action='store', metavar='FILE', #typ
                     #required=True,
                     help="hlt setup file (default: "+setup_file+"). Note that the file must be in the same directory with this script.")
 
+parser.add_argument('-s', '--skim-cfi', action='store', metavar='FILE', #type=str,
+                    default="",
+                    #required=True,
+                    help='skim configuration fragment (default: ""). Note that the file must be in the same directory with this script.')
+
 parser.add_argument('-c', '--other-changes', nargs='+', action='store', metavar='CHANGES', #type= str,
                     default=["# add additional code below"],
                     required=False,
@@ -159,6 +164,18 @@ temp=temp.replace("$PATCONFIG", "")
 
 other_changes=""
 for change in args.other_changes: other_changes=other_changes+change+"\n"
+
+if args.skim_cfi:
+    if args.skim_cfi.endswith(".py"):  args.skim_cfi = args.skim_cfi[:-3]
+    skim_module = args.skim_cfi
+    if skim_module.endswith("_cfi"):  skim_module = skim_module[:-4]
+    skim_module_renamed = "dontignore" + skim_module[0].upper() + skim_module[1:]
+
+    skim_module_import = "from %s import %s\n" % (args.skim_cfi, skim_module)
+    skim_module_import += "process.%s = %s.clone()\n" % (skim_module_renamed, skim_module)
+    skim_module_import += "process.HLTBeginSequence.insert(0, process.%s)\n" % (skim_module_renamed)
+    other_changes += skim_module_import
+
 
 temp=temp.replace("$OTHERCHANGES", other_changes.strip())
 temp=cfgpreamble+"\n"+temp
