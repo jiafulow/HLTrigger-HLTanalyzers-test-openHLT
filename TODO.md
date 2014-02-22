@@ -8,3 +8,9 @@ HLTrigger-HLTanalyzers-test-openHLT
 [ ] Check sanity of PFNoPU cleaning
 
 [ ] Update HBHE noise filter config
+
+[ ] New MET significance, minMET
+
+[ ] Use HtMht producer for trackMET to get sumptchf
+
+[ ] Move to 7_1_X
