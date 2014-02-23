@@ -71,10 +71,7 @@ if verbose:
 # try and import the necessary modules
 import os, sys, hashlib
 from datetime import datetime
-if sys.version_info < (2, 7):
-    import CloneTrigger_52x as CloneTrigger
-else:
-    import CloneTrigger
+import CloneTrigger
        
 try: import FWCore.ParameterSet.Config as cms
 except ImportError:

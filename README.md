@@ -23,9 +23,24 @@ cd $CMSSW_BASE/src
 # check out the package by git cms-addpkg HLTrigger/HLTanalyzers .
 # (see http://cms-sw.github.io/cmssw/git-cms-addpkg.html )
 git clone git@github.com:jiafulow/HLTrigger-HLTanalyzers-test-openHLT.git HLTrigger/HLTanalyzers/test/openHLT
+cd HLTrigger/HLTanalyzers/test/openHLT
 ```
 
 ### Run
+
+Before the first run (on Data):
+```sh
+# Setup conditions
+edmConfigFromDB --cff --orcoff --configName /cdaq/physics/Run2012/8e33/v2.1/HLT/V7 --nopaths > setup_cff.py
+# To get the full menu
+#hltGetConfiguration orcoff:/cdaq/physics/Run2012/8e33/v2.1/HLT/V7 --full --offline --data --no-output --process TEST --globaltag auto:hltonline > hlt.py
+# To get a menu with selected paths
+#hltGetConfiguration orcoff:/cdaq/physics/Run2012/8e33/v2.1/HLT/V7 --full --offline --data --no-output --process TEST --globaltag auto:hltonline --path HLT_PFMET150_v7 > hlt_PFMET150.py
+# Or just take one of the menus available in this repository
+#ls hlt*py
+```
+
+To run on MC, change `--globaltag auto:hltonline` to `--globaltag auto:startup`.
 
 For openHLT-only (on Data):
 ```sh
@@ -40,13 +55,15 @@ cmsRun openhlt_go.py
 For openHLT2PAT (on Data):
 ```sh
 # Producer step
-python openHLT2PAT.py -p -i ifiles_MET_RAWAOD_208307.py -o MyProducts.MET.root -t hlt_MET.py -n 1000
+python openHLT2PAT.py -p -i inputfiles/ifiles_MET_RAWAOD_208307.py -o MyProducts.MET.root -t hlt_MET.py -n 1000
 cmsRun openhlt_go.py
 # Filter step (note: use openHLT.py)
 python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET.py -n 1000
 ```
 
 To run on MC, add `--mc` argument to `openHLT.py` or `openHLT2PAT.py`.
+
+Both `openHLT.py` and `openHLT.TEMPLATE` have been updated to work in CMSSW_7_X_Y. Try running with `-t hlt_7XY.py -u setup_7XY_cff.py` for example.
 
 #### Nota Bene
 

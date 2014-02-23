@@ -7,7 +7,6 @@ try: import FWCore.ParameterSet.Config as cms
 except ImportError:
     print 'Cannot import CMSSW python modules. Did you forget to "cmsenv"?'
     sys.exit()
-#import FWCore.Utilities.Exception as cmsexception #didn't work
 
 # print out the OS
 try: print file("/etc/redhat-release").read().strip()
@@ -18,14 +17,12 @@ outputRAW=False
 outputLess=True
 outputSummary=True
 hltProcName="HLT3"
-#runOpen=False#True #ignore all filter decisions, true for testing
 
 #Configuration options to be modified from command line by openHLT2PAT.py
 openHLT2PAT=False
 
 from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
 process.load($SETUPFILE)
-
 
 #-- Command line options -> configuration code injection and script configuration code -------
 interpreter=sys.argv.pop(0)
@@ -116,9 +113,8 @@ process.output = cms.OutputModule("PoolOutputModule",
                                   )
 if outputRAW:
     process.output.outputCommands=cms.untracked.vstring("drop *","keep *_rawDataCollector_*_*","keep *_addPileupInfo_*_*","keep *_TriggerResults_*_*","keep *_hltTriggerSummaryAOD_*_*")
-
 if not openHLT2PAT:
-    process.HLTOutput_sam = cms.EndPath(process.output)
+    process.HLTOutput_openhlt = cms.EndPath(process.output)
 
 #hlt stuff
 process.MessageLogger.cerr.FwkReport = cms.untracked.PSet(
@@ -176,6 +172,8 @@ if 'PrescaleService' in process.__dict__:
 if 'GlobalTag' in process.__dict__:
     process.GlobalTag.connect   = 'frontier://FrontierProd/CMS_COND_31X_GLOBALTAG'
     process.GlobalTag.pfnPrefix = cms.untracked.string('frontier://FrontierProd/')
+    #process.GlobalTag.RefreshEachRun = cms.untracked.bool( False )
+    #process.GlobalTag.ReconnectEachRun = cms.untracked.bool( False )
     if not isData:
         from Configuration.AlCa.GlobalTag import GlobalTag as customiseGlobalTag
         process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = 'auto:startup_8E33v2')
@@ -184,6 +182,7 @@ if 'MessageLogger' in process.__dict__:
     process.MessageLogger.categories.append('TriggerSummaryProducerAOD')
     process.MessageLogger.categories.append('L1GtTrigReport')
     process.MessageLogger.categories.append('HLTrigReport')
+    process.MessageLogger.categories.append('FastReport')
     process.MessageLogger.suppressInfo = cms.untracked.vstring('ElectronSeedProducer',"hltL1NonIsoStartUpElectronPixelSeeds","hltL1IsoStartUpElectronPixelSeeds","BasicTrajectoryState")
 
 prodWhiteList=set()
@@ -248,48 +247,22 @@ for pathName in process.pathNames().split():
                 notAllCopiesRemoved = path.remove(getattr(process,moduleName))
 
 if runProducers==False:
-    for path in process.pathNames().split():
-       # print path
+    for pathName in process.pathNames().split():
+        path = getattr(process,pathName)
         for producer in process.producerNames().split():
             if producer not in prodWhiteList:
                 if getattr(process,producer).type_() not in prodTypeWhiteList:
                     notAllCopiesRemoved=True
-                    #print producer
                     while notAllCopiesRemoved:
-                        notAllCopiesRemoved = getattr(process,path).remove(getattr(process,producer))
+                        notAllCopiesRemoved = path.remove(getattr(process,producer))
 
-
-#okay this is horrible, we just need a list of ignored filters
-#however I dont know how to get a filter to tell me its ignored
-#so we have to dump the python config of the path and look for cms.ignore
-#this doesnt expand sequences so we need to also check in sequences
-#and I've now found the better way and this is no longer used...
-def findFiltersAlreadyIgnored(path,process): #there has got to be a better way...
-    filtersAlreadyIgnored=[]
-    pathSeq= path.dumpPython(options=cms.Options())
-    for module in pathSeq.split("+"):
-       # print "mod one ",module,"test"
-        if module.startswith("cms.ignore"):
-            module=module.lstrip("cms.ignore")
-            module=module.lstrip("(")
-            module=module.rstrip(")")
-            module=module.lstrip("process.")
-            filtersAlreadyIgnored.append(module)
-        else:
-            module=module.lstrip("cms.Path(")
-            module=module.lstrip("(")
-            module=module.rstrip("\n")
-            module=module.rstrip(")")
-            if module.startswith("process."):
-                module=module.lstrip("process.")
-        #        print module, type(getattr(process,module))
-                if type(getattr(process,module)).__name__=="Sequence":
-                    #print "sequence"
-                    #print module
-                    filtersIgnoredInSequence = findFiltersAlreadyIgnored(getattr(process,module),process)
-                    for filter in filtersIgnoredInSequence:
-                        filtersAlreadyIgnored.append(filter)
-    return filtersAlreadyIgnored
+#this removes all prescalers
+for pathName in process.pathNames().split():
+    path = getattr(process,pathName)
+    for moduleName in path.moduleNames():
+        prescaler = getattr(process,moduleName)
+        if prescaler.type_()=="HLTPrescaler":
+            path.remove(prescaler)
 
 #this removes opperators such as not and ignore from filters
 #this is because you cant ignore twice or not ignore
@@ -320,33 +293,25 @@ if runOpen:
                 if not filterName.startswith("dontignore"):
                     path.replace(filt,cms.ignore(filt))
 
-
 def cleanList(input,blacklist):
     output = set()
     for x in input:
         if x not in blacklist:
             output.add(x)
-    #print output
     return output
 
 productsToKeep = set()
 for pathName in process.pathNames().split():
     path = getattr(process,pathName)
     for filterName in path.moduleNames():
-        #print filterName
         filt = getattr(process,filterName)
-        #print filt
-        #print filt.type_()
         if type(filt).__name__=="EDFilter":
-            #print filterName
             for paraName in filt.parameters_():
                 para = filt.getParameter(paraName)
                 if type(para).__name__=="InputTag":
                     if para.getModuleLabel()!="":
                         productsToKeep.add(para.getModuleLabel())
-                   # print paraName,type(para).__name__,para.getModuleLabel()
                 if type(para).__name__=="VInputTag":
-                    #print paraName,type(para).__name__,para.getModuleLabel()
                     for tag in para:
                         if tag!="":
                             productsToKeep.add(tag)
@@ -370,7 +335,6 @@ for product in addProductsToKeep:
     productsToKeep.add(product)
 
 
-#productsToKeep = uniq(productsToKeep)
 productsToKeep = cleanList(productsToKeep,process.filterNames().split())
 
 process.output.outputCommands=cms.untracked.vstring("drop *","keep *_TriggerResults_*_*",
