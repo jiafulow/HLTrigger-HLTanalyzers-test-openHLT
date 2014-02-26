@@ -164,14 +164,14 @@ rm -rf TaiSakuma_53X-met-130910-01
 # LumiCalc (note: using GIT)
 # https://twiki.cern.ch/twiki/bin/view/CMS/LumiCalc
 # ------------------------------------------------------------------------------
-git clone https://github.com/cms-sw/RecoLuminosity-LumiDB.git RecoLuminosity/LumiDB
-cd RecoLuminosity/LumiDB
-git checkout V04-02-10
-cd -
+#git clone https://github.com/cms-sw/RecoLuminosity-LumiDB.git RecoLuminosity/LumiDB
+#cd RecoLuminosity/LumiDB
+#git checkout V04-02-10
+#cd -
 
 
 ## Finish up
-checkdeps -a
+#checkdeps -a
 scram b -j4
 rehash
 

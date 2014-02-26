@@ -14,7 +14,7 @@
 ## Options and Output Report
 process.options = cms.untracked.PSet(
     wantSummary = cms.untracked.bool( True ),
-    SkipEvent = cms.untracked.vstring('ProductNotFound')
+    #SkipEvent = cms.untracked.vstring('ProductNotFound')
 )
 
 ## Source
@@ -205,6 +205,7 @@ process.out.outputCommands.extend( ['keep *_offlinePrimaryVertices*_*_*',
                                     "keep *_pfMet__*",
                                     "keep *_pfMETPFlow__*",
                                     "keep *_met__*",
+                                    "keep *_lumiProducer__*",
                                     ] )
 
 # top projections in PF2PAT:

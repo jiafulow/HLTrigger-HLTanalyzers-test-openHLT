@@ -11,6 +11,6 @@ HLTrigger-HLTanalyzers-test-openHLT
 
 [ ] New MET significance, minMET
 
-[ ] Use HtMht producer for trackMET to get sumptchf
+[ ] MET phi correction
 
 [ ] Move to 7_1_X
