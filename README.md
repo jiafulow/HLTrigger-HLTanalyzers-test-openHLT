@@ -12,8 +12,9 @@ Trigger primitives are produced by STEAM's new openHLT (https://twiki.cern.ch/tw
 
 ### Setup environment
 
-See the file `addpkg_5_3_11.csh` to setup environment for CMSSW_5_3_11.
+See the file `addpkg_5_3_14.csh` to setup environment for CMSSW_5_3_14.
 
+2014-02-25: updated from CMSSW_5_3_11 to CMSSW_5_3_14
 
 ### Checkout
 

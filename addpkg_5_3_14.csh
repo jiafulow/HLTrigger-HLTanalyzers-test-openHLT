@@ -55,6 +55,13 @@ wget --no-check-certificate https://gist.githubusercontent.com/jiafulow/1cecbd55
 # ------------------------------------------------------------------------------
 git-cms-merge-topic -v -u cms-met:53X-MVaNoPuMET-20131217-01
 
+# PileupJetID
+# These use the 53x working points
+wget --no-check-certificate https://gist.githubusercontent.com/jiafulow/1cecbd551b4075219af4/raw/bb9b2a980a6a24dd5b3e9398c1a86cbbb0960855/PileupJetIDCutParams_cfi.py -O RecoJets/JetProducers/python/PileupJetIDCutParams_cfi.py
+wget --no-check-certificate https://gist.githubusercontent.com/jiafulow/1cecbd551b4075219af4/raw/dd6b50421040a0e8fd06b49f3dbfe4244cf7778a/PileupJetIDParams_cfi.py -O RecoJets/JetProducers/python/PileupJetIDParams_cfi.py
+wget --no-check-certificate https://gist.githubusercontent.com/jiafulow/1cecbd551b4075219af4/raw/54c57a282b0aa5f3b8350e2aa4c10699fbd804b8/PileupJetID_cfi.py -O RecoJets/JetProducers/python/PileupJetID_cfi.py
+touch RecoJets/JetProducers/data/dummy.txt
+
 # ------------------------------------------------------------------------------
 # LumiCalc (note: using GIT)
 # https://twiki.cern.ch/twiki/bin/view/CMS/LumiCalc

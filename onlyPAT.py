@@ -220,6 +220,7 @@ if args.skim_cfi:
     skim_module_import += "process.HLTBeginSequence.insert(0, process.%s)\n" % (skim_module_renamed)
     other_changes += skim_module_import
 
+
 temp=temp.replace("$OTHERCHANGES", other_changes.strip())
 temp=cfgpreamble+"\n"+temp
 open(oHLTconfig_out, "w").write(temp)

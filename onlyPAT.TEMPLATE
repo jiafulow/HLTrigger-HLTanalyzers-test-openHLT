@@ -7,7 +7,6 @@ try: import FWCore.ParameterSet.Config as cms
 except ImportError:
     print 'Cannot import CMSSW python modules. Did you forget to "cmsenv"?'
     sys.exit()
-#import FWCore.Utilities.Exception as cmsexception #didn't work
 
 # print out the OS
 try: print file("/etc/redhat-release").read().strip()
@@ -17,9 +16,7 @@ except: pass
 outputRAW=False
 outputLess=True
 outputSummary=True
-#hltProcName="HLT3"
 hltProcName="PAT3"
-#runOpen=False#True #ignore all filter decisions, true for testing
 
 #Configuration options to be modified from command line by openHLT2PAT.py
 openHLT2PAT=False
@@ -27,7 +24,6 @@ openHLT2PAT=False
 #from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
 #process.load("setup_cff")
 process = cms.Process("PAT")
-
 
 #-- Command line options -> configuration code injection and script configuration code -------
 interpreter=sys.argv.pop(0)
