@@ -388,15 +388,38 @@ process.hltAK5JetID = cms.EDProducer("JetIDProducer", HLTJetIDParams,
     src = cms.InputTag("hltAntiKT5CaloJets")
 )
 
+process.pfMetSig = cms.EDProducer('METSignificance',
+      runOnMC              = cms.untracked.bool(True),
+      #muonTag              = cms.untracked.InputTag('pfSelectedMuons'),
+      muonTag              = cms.untracked.InputTag('pfIsolatedMuonsPFlow'),
+      #electronTag          = cms.untracked.InputTag('pfSelectedElectrons'),
+      electronTag          = cms.untracked.InputTag('pfIsolatedElectronsPFlow'),
+
+      #pfjetsTag            = cms.untracked.InputTag('pfJets'),
+      pfjetsTag            = cms.untracked.InputTag('ak5PFJets'),  # WARNING: no cross-cleaning with leptons! I had to comment out the loops over leptons in METSignificance.cc
+      pfjetCorrectorL1     = cms.untracked.string('ak5PFL1Fastjet'),
+      pfjetCorrectorL123   = cms.untracked.string('ak5PFL1FastL2L3'),
+
+      jetResAlgo           = cms.string('AK5PF'),
+      jetResEra            = cms.string('Spring10'),
+
+      jetThreshold = cms.double(20)
+)
+if isData:
+    process.pfMetSig.runOnMC = False
+    process.pfMetSig.pfjetCorrectorL123 = 'ak5PFL1FastL2L3Residual'
+
 userSequence = cms.Sequence(
     process.pfPileUpFlag
   + process.hltPFPileUpFlag
   + process.hltAK5JetID
+  + process.pfMetSig
 )
 userOutputCommands = cms.untracked.vstring(
     "keep *_pfPileUpFlag__*",
     "keep *_hltPFPileUpFlag__*",
     "keep *_hltAK5JetID_*_*",
+    "keep *_pfMetSig_*_*",
 )
 process.p += userSequence
 process.out.outputCommands += userOutputCommands

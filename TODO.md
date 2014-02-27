@@ -9,8 +9,6 @@ HLTrigger-HLTanalyzers-test-openHLT
 
 [ ] Update HBHE noise filter config
 
-[ ] New MET significance, minMET
-
 [ ] MET phi correction
 
 [ ] Move to 7_1_X
