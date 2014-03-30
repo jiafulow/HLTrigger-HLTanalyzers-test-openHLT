@@ -210,8 +210,8 @@ other_changes=""
 for change in args.other_changes: other_changes=other_changes+change+"\n"
 
 if args.skim_cfi:
-    if args.skim_cfi.endswith(".py"):  args.skim_cfi = args.skim_cfi[:-3]
-    skim_module = args.skim_cfi
+    if args.skim_cfi.endswith(".py"):  args.skim_cfi = args.skim_cfi[:-3].replace("/",".")
+    skim_module = args.skim_cfi.split(".")[-1]
     if skim_module.endswith("_cfi"):  skim_module = skim_module[:-4]
     skim_module_renamed = "dontignore" + skim_module[0].upper() + skim_module[1:]
 
