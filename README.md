@@ -1,13 +1,17 @@
 HLTrigger-HLTanalyzers-test-openHLT
 ===================================
 
+![CMS](http://jiafulow.github.io/VHbbAnalysis/css/CMS-BW-128x128.gif)
+
 CMSSW NewOpenHLT + PF2PAT workflow used in Jet/MET Trigger subgroup (https://twiki.cern.ch/twiki/bin/view/CMS/JetMETTriggers).
 
 This produces trigger primitives and offline objects together in one single run to facilitates comparison between online vs. offline objects. Trigger primitives are produced by STEAM's new openHLT (https://twiki.cern.ch/twiki/bin/view/CMS/NewOpenHLT); offline objects are produced using standard PF2PAT (https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePF2PAT). They are joined together using SubProcess (https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideSubProcesses) and two-file solution.
 
 
-openHLT2PAT (CMSSW_5_3_14_patch2)
----------------------------------
+openHLT2PAT (CMSSW_5_3_X)
+-------------------------
+![CMSSW_5_3_14_patch2](http://img.shields.io/badge/cmssw-v5.3.14--patch.2-blue.svg)
+
 ### Setup environment
 
 See the file `addpkg_5_3_14.csh` to setup environment for CMSSW_5_3_14_patch2.
@@ -29,8 +33,6 @@ cd HLTrigger/HLTanalyzers/test/openHLT
 
 Before the first run (on Data):
 ```sh
-# Setup conditions
-edmConfigFromDB --cff --orcoff --configName /cdaq/physics/Run2012/8e33/v2.1/HLT/V7 --nopaths > setup_cff.py
 # To get the full menu
 #hltGetConfiguration orcoff:/cdaq/physics/Run2012/8e33/v2.1/HLT/V7 --full --offline --data --no-output --process TEST --globaltag auto:hltonline > hlt.py
 # To get a menu with selected paths
@@ -63,21 +65,22 @@ python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET.py -n 
 To run on MC, add `--mc` argument to `openHLT.py` or `openHLT2PAT.py`.
 
 
-openHLT2PAT (CMSSW_7_1_0_pre4)
-------------------------------
+openHLT2PAT (CMSSW_7_1_X)
+-------------------------
+![CMSSW_7_1_0_pre4](http://img.shields.io/badge/cmssw-v7.1.0--pre.4-blue.svg)
+
 **Under construction**
 
-Both `openHLT.py` and `openHLT.TEMPLATE` have been updated to work in CMSSW_7_X_Y. Try running with `-t hlt_7XY.py -u setup_7XY_cff.py` for example.
+Both `openHLT.py` and `openHLT.TEMPLATE` have been updated to work in CMSSW_7_X_Y.
 
 
 ## Nota Bene
 
 - **Important**: Please edit `openHLT2PAT.TEMPLATE` and disable the lines under the comment block "User stuff". These are stuff that is interesting to the author, but probably not to anyone else.
-- FastTimerService clashes with SubProcess, so it is disabled in `setup_cff.py` and has to be disabled in any input HLT config file.
+- FastTimerService clashes with SubProcess, so it has to be disabled in any input HLT config file.
 - To do a skim, append `-s skimfiles/skimHLTPFMET150_cfi.py` as an argument to `openHLT2PAT.py`.
 - Global tag for MC is hardcoded in both `openHLT.TEMPLATE`, `openHLT2PAT.TEMPLATE`.
 - Global tag for PAT is hardcoded in `openHLT2PAT.TEMPLATE`.
-- Global tag for HLT is provided by default by `setup_cff.py` and can be overwritten by input HLT config file.
 - To run CRAB jobs, it's easiest to use the `dump.py` file that is produced when `cmsRun openhlt_go.py` is executed successfully.
 - To run only offline reconstruction, substitute `openHLT2PAT` by `onlyPAT` everywhere.
 
