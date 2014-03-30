@@ -71,6 +71,9 @@ if verbose:
 # try and import the necessary modules
 import os, sys, hashlib
 from datetime import datetime
+#if sys.version_info < (2, 7):
+#    import CloneTrigger_52x as CloneTrigger
+#else:
 import CloneTrigger
        
 try: import FWCore.ParameterSet.Config as cms
@@ -100,7 +103,7 @@ for change in args.trigger_path_changes:
    
 
 #http://cmslxr.fnal.gov/lxr/source/FWCore/ParameterSet/python/SequenceTypes.py#336
-newpath=CloneTrigger.clone_path(process, basepath, changes, verbose==2)
+newpath=CloneTrigger.clone_path(process, basepath, changes, renaming, verbose==2)
 
 #add the cloned path to the CMSSW process
 hash = hashlib.md5( basepath+'\n'.join(changes) ).hexdigest().capitalize()

@@ -21,8 +21,8 @@ hltProcName="HLT3"
 #Configuration options to be modified from command line by openHLT2PAT.py
 openHLT2PAT=False
 
+#process.load("setup_cff")
 from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
-process.load($SETUPFILE)
 
 #-- Command line options -> configuration code injection and script configuration code -------
 interpreter=sys.argv.pop(0)
@@ -179,10 +179,10 @@ if 'GlobalTag' in process.__dict__:
         process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = 'auto:startup_8E33v2')
 
 if 'MessageLogger' in process.__dict__:
-    process.MessageLogger.categories.append('TriggerSummaryProducerAOD')
-    process.MessageLogger.categories.append('L1GtTrigReport')
-    process.MessageLogger.categories.append('HLTrigReport')
-    process.MessageLogger.categories.append('FastReport')
+#    process.MessageLogger.categories.append('TriggerSummaryProducerAOD')
+#    process.MessageLogger.categories.append('L1GtTrigReport')
+#    process.MessageLogger.categories.append('HLTrigReport')
+#    process.MessageLogger.categories.append('FastReport')
     process.MessageLogger.suppressInfo = cms.untracked.vstring('ElectronSeedProducer',"hltL1NonIsoStartUpElectronPixelSeeds","hltL1IsoStartUpElectronPixelSeeds","BasicTrajectoryState")
 
 prodWhiteList=set()

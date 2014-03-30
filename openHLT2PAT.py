@@ -17,7 +17,6 @@ ofile=[]
 maxNrEvents=1000
 projectFile=""
 hlt_file="hlt.py"
-setup_file="setup_cff.py"
 oHLTconfig_template="openHLT.TEMPLATE"
 oHLTconfig_pattemplate="openHLT2PAT.TEMPLATE"
 oHLTconfig_out="openhlt_go.py"
@@ -42,11 +41,6 @@ parser.add_argument('-t', '--hlt-config', action='store', metavar='FILE', #type=
                     default=hlt_file,
                     #required=True,
                     help="hlt configuration file (default: "+hlt_file+"). Note that the file must be in the same directory with this script.")
-
-parser.add_argument('-u', '--setup-config', action='store', metavar='FILE', #type=str,
-                    default=setup_file,
-                    #required=True,
-                    help="hlt setup file (default: "+setup_file+"). Note that the file must be in the same directory with this script.")
 
 parser.add_argument('-s', '--skim-cfi', action='store', metavar='FILE', #type=str,
                     default="",
@@ -151,15 +145,6 @@ if hlt_module[-3:] == ".py":
     hlt_module=hlt_module[:-3]
 print mprefx, "[i] HLT module:",hlt_module
 
-setup_cff=args.setup_config
-if not os.path.isfile(setup_cff):
-    print mprefx,"[!] Error: Cannot find the setup config:",setup_cff
-    sys.exit()
-if setup_cff[-3:] == ".py":
-    setup_cff = setup_cff[:-3]
-print mprefx, "[i] setup config:",setup_cff
-setup_cff = '"' + setup_cff + '"'
-
 try: temp=open(oHLTconfig_template).read()
 except IOError:
     print mprefx,"[!] Error: Cannot find the template file:",oHLTconfig_template
@@ -167,7 +152,6 @@ except IOError:
 
 if verbose: print mprefx, "[i] read the template file:", oHLTconfig_template
 temp=temp.replace("$HLTFILE", hlt_module)
-temp=temp.replace("$SETUPFILE", setup_cff)
 temp=temp.replace("$CONFIG", cmd)
 
 

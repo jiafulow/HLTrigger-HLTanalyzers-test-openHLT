@@ -21,8 +21,8 @@ hltProcName="PAT3"
 #Configuration options to be modified from command line by openHLT2PAT.py
 openHLT2PAT=False
 
-#from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
 #process.load("setup_cff")
+#from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
 process = cms.Process("PAT")
 
 #-- Command line options -> configuration code injection and script configuration code -------

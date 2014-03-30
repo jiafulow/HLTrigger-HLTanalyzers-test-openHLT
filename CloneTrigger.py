@@ -134,7 +134,6 @@ def find_affected_modules(sequence, changed):
                 # this module is affected by the original clonig/renaming, or by a knock-off
                 affected.append(label)
                 break
-
     # add any 'changed' module that is not in the list of 'affected' modules to the beginning of the list
     return [ label for label in changed if label not in affected ] + affected
 
@@ -168,7 +167,7 @@ def find_sequences_with_modules(sequence, labels):
     return sequences
 
 
-def clone_path(process, pathname, process_changes, verbose=False):
+def clone_path(process, pathname, process_changes, rename, verbose=False):
     """Clone a path, apply a list of changes, and add the path to the process with a new name.
 
     'process_changes' is expected to be one or more strings of the form 'process.module[.pset].parameter = cms.type(value)'
@@ -193,11 +192,10 @@ def clone_path(process, pathname, process_changes, verbose=False):
     # so that they can be update with a single pass
 
     #need to map sequence string to sequence object
-    #print getattr(process, path)
     path= process.__dict__[pathname] 
     if verbose: print "Base path for cloning:", pathname
     affected_modules = find_affected_modules(path, sorted(changes))
-    ##print "@@ affected modules:", affected_modules
+    #print "@@ affected modules:", affected_modules
     for label in affected_modules:
         module = process.__dict__[label]
         # make sure all affected modules can receive changes
@@ -211,10 +209,14 @@ def clone_path(process, pathname, process_changes, verbose=False):
                     raise RuntimeError('wrong ordering of modules to be cloned\nThis should never happen.')
                 # compute the new InputTag replacing the label, but keeping the original instance and process (if set)
                 new_inputtag = ':'.join([ clones[original_label] ] + original_inputtag.split(':')[1:])
-                changes[label].append('%s = "%s"' % (attribute, new_inputtag))
+                changes[label].append('%s = "%s"' % (attribute, new_inputtag))                
         # once all changes are know, define a unique hash from the list of changes
-        hash = hashlib.md5( '\n'.join(sorted(changes[label])) ).hexdigest().capitalize()
-        clones[label] = label + hash
+        #print 'label: ', label
+        if label.startswith("hltPre"):
+            clones[label] = label + rename
+        else :    
+            hash = hashlib.md5( '\n'.join(sorted(changes[label])) ).hexdigest().capitalize()
+            clones[label] = label + hash
         # if a clone with this hash does not exist, create it
         if clones[label] not in process.__dict__:
             if verbose:

@@ -20,11 +20,12 @@ outputSummary=True
 hltProcName="HLT3"
 #runOpen=False#True #ignore all filter decisions, true for testing
 
+#process.load("setup_cff")
 if isData:
     from $HLTFILE import *    # module name is chosen by the user and injected here by openHLT.py
 else:
     from muPathsMC import *
-process.load("setup_cff")
+
 
 
 #-- Command line options -> configuration code injection and script configuration code -------
