@@ -125,65 +125,65 @@ process.MessageLogger.cerr.FwkReport = cms.untracked.PSet(
 # override the process name
 process.setName_(hltProcName)
 
-# En-able HF Noise filters in GRun menu
-if 'hltHfreco' in process.__dict__:
-    process.hltHfreco.setNoiseFlags = cms.bool( True )
-
-# adapt HLT modules to the correct process name
-if 'hltTrigReport' in process.__dict__:
-    process.hltTrigReport.HLTriggerResults                    = cms.InputTag( 'TriggerResults', '', hltProcName )
-
-if 'hltPreExpressCosmicsOutputSmart' in process.__dict__:
-    process.hltPreExpressCosmicsOutputSmart.TriggerResultsTag = cms.InputTag( 'TriggerResults', '', hltProcName )
-
-if 'hltPreExpressOutputSmart' in process.__dict__:
-    process.hltPreExpressOutputSmart.TriggerResultsTag        = cms.InputTag( 'TriggerResults', '', hltProcName )
-
-if 'hltPreDQMForHIOutputSmart' in process.__dict__:
-    process.hltPreDQMForHIOutputSmart.TriggerResultsTag       = cms.InputTag( 'TriggerResults', '', hltProcName )
-
-if 'hltPreDQMForPPOutputSmart' in process.__dict__:
-    process.hltPreDQMForPPOutputSmart.TriggerResultsTag       = cms.InputTag( 'TriggerResults', '', hltProcName )
-
-if 'hltPreHLTDQMResultsOutputSmart' in process.__dict__:
-    process.hltPreHLTDQMResultsOutputSmart.TriggerResultsTag  = cms.InputTag( 'TriggerResults', '', hltProcName )
-
-if 'hltPreHLTDQMOutputSmart' in process.__dict__:
-    process.hltPreHLTDQMOutputSmart.TriggerResultsTag         = cms.InputTag( 'TriggerResults', '', hltProcName )
-
-if 'hltPreHLTMONOutputSmart' in process.__dict__:
-    process.hltPreHLTMONOutputSmart.TriggerResultsTag         = cms.InputTag( 'TriggerResults', '', hltProcName )
-
-if 'hltDQMHLTScalers' in process.__dict__:
-    process.hltDQMHLTScalers.triggerResults                   = cms.InputTag( 'TriggerResults', '', hltProcName )
-    process.hltDQMHLTScalers.processname                      = hltProcName
-
-if 'hltDQML1SeedLogicScalers' in process.__dict__:
-    process.hltDQML1SeedLogicScalers.processname              = hltProcName
-
-# remove the HLT prescales
-if 'PrescaleService' in process.__dict__:
-    process.PrescaleService.lvl1DefaultLabel = cms.string( '0' )
-    process.PrescaleService.lvl1Labels       = cms.vstring( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' )
-    process.PrescaleService.prescaleTable    = cms.VPSet( )
-
-
-# override the GlobalTag, connection string and pfnPrefix
-if 'GlobalTag' in process.__dict__:
-    process.GlobalTag.connect   = 'frontier://FrontierProd/CMS_COND_31X_GLOBALTAG'
-    process.GlobalTag.pfnPrefix = cms.untracked.string('frontier://FrontierProd/')
-    #process.GlobalTag.RefreshEachRun = cms.untracked.bool( False )
-    #process.GlobalTag.ReconnectEachRun = cms.untracked.bool( False )
-    if not isData:
-        from Configuration.AlCa.GlobalTag import GlobalTag as customiseGlobalTag
-        process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = 'auto:startup_8E33v2')
-
-if 'MessageLogger' in process.__dict__:
+## En-able HF Noise filters in GRun menu
+#if 'hltHfreco' in process.__dict__:
+#    process.hltHfreco.setNoiseFlags = cms.bool( True )
+#
+## adapt HLT modules to the correct process name
+#if 'hltTrigReport' in process.__dict__:
+#    process.hltTrigReport.HLTriggerResults                    = cms.InputTag( 'TriggerResults', '', hltProcName )
+#
+#if 'hltPreExpressCosmicsOutputSmart' in process.__dict__:
+#    process.hltPreExpressCosmicsOutputSmart.TriggerResultsTag = cms.InputTag( 'TriggerResults', '', hltProcName )
+#
+#if 'hltPreExpressOutputSmart' in process.__dict__:
+#    process.hltPreExpressOutputSmart.TriggerResultsTag        = cms.InputTag( 'TriggerResults', '', hltProcName )
+#
+#if 'hltPreDQMForHIOutputSmart' in process.__dict__:
+#    process.hltPreDQMForHIOutputSmart.TriggerResultsTag       = cms.InputTag( 'TriggerResults', '', hltProcName )
+#
+#if 'hltPreDQMForPPOutputSmart' in process.__dict__:
+#    process.hltPreDQMForPPOutputSmart.TriggerResultsTag       = cms.InputTag( 'TriggerResults', '', hltProcName )
+#
+#if 'hltPreHLTDQMResultsOutputSmart' in process.__dict__:
+#    process.hltPreHLTDQMResultsOutputSmart.TriggerResultsTag  = cms.InputTag( 'TriggerResults', '', hltProcName )
+#
+#if 'hltPreHLTDQMOutputSmart' in process.__dict__:
+#    process.hltPreHLTDQMOutputSmart.TriggerResultsTag         = cms.InputTag( 'TriggerResults', '', hltProcName )
+#
+#if 'hltPreHLTMONOutputSmart' in process.__dict__:
+#    process.hltPreHLTMONOutputSmart.TriggerResultsTag         = cms.InputTag( 'TriggerResults', '', hltProcName )
+#
+#if 'hltDQMHLTScalers' in process.__dict__:
+#    process.hltDQMHLTScalers.triggerResults                   = cms.InputTag( 'TriggerResults', '', hltProcName )
+#    process.hltDQMHLTScalers.processname                      = hltProcName
+#
+#if 'hltDQML1SeedLogicScalers' in process.__dict__:
+#    process.hltDQML1SeedLogicScalers.processname              = hltProcName
+#
+## remove the HLT prescales
+#if 'PrescaleService' in process.__dict__:
+#    process.PrescaleService.lvl1DefaultLabel = cms.string( '0' )
+#    process.PrescaleService.lvl1Labels       = cms.vstring( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' )
+#    process.PrescaleService.prescaleTable    = cms.VPSet( )
+#
+#
+## override the GlobalTag, connection string and pfnPrefix
+#if 'GlobalTag' in process.__dict__:
+#    process.GlobalTag.connect   = 'frontier://FrontierProd/CMS_COND_31X_GLOBALTAG'
+#    process.GlobalTag.pfnPrefix = cms.untracked.string('frontier://FrontierProd/')
+#    #process.GlobalTag.RefreshEachRun = cms.untracked.bool( False )
+#    #process.GlobalTag.ReconnectEachRun = cms.untracked.bool( False )
+#    if not isData:
+#        from Configuration.AlCa.GlobalTag import GlobalTag as customiseGlobalTag
+#        process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = 'auto:startup_8E33v2')
+#
+#if 'MessageLogger' in process.__dict__:
 #    process.MessageLogger.categories.append('TriggerSummaryProducerAOD')
 #    process.MessageLogger.categories.append('L1GtTrigReport')
 #    process.MessageLogger.categories.append('HLTrigReport')
 #    process.MessageLogger.categories.append('FastReport')
-    process.MessageLogger.suppressInfo = cms.untracked.vstring('ElectronSeedProducer',"hltL1NonIsoStartUpElectronPixelSeeds","hltL1IsoStartUpElectronPixelSeeds","BasicTrajectoryState")
+#    process.MessageLogger.suppressInfo = cms.untracked.vstring('ElectronSeedProducer',"hltL1NonIsoStartUpElectronPixelSeeds","hltL1IsoStartUpElectronPixelSeeds","BasicTrajectoryState")
 
 prodWhiteList=set()
 prodWhiteList.add("hltFastPVJetTracksAssociator")

@@ -25,11 +25,14 @@ process.options = cms.untracked.PSet(
 #process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 ## Geometry and Detector Conditions (needed for a few patTuple production steps)
-#process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.Geometry.GeometryIdeal_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-#from Configuration.AlCa.autoCond import autoCond
-#process.GlobalTag.globaltag = cms.string( autoCond[ 'startup' ] )
+from Configuration.AlCa.GlobalTag import GlobalTag
+if not isData:
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:startup_8E33v2')
+else:
+    #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:com10_8E33v2')
+    process.GlobalTag = GlobalTag(process.GlobalTag, 'GR_P_V42_AN4::All')  # for PromptReco
 process.load("Configuration.StandardSequences.MagneticField_cff")
 
 ## Standard PAT Configuration File
@@ -43,7 +46,7 @@ process.out = cms.OutputModule("PoolOutputModule",
                                SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
                                # save PAT Layer 1 output; you need a '*' to
                                # unpack the list of commands 'patEventContent'
-                               outputCommands = cms.untracked.vstring('drop *', *patEventContent )
+                               outputCommands = cms.untracked.vstring('drop *', 'keep recoPFCandidates_particleFlow_*_*', *patEventContent )
                                )
 process.outpath = cms.EndPath(process.out)
 
@@ -213,38 +216,32 @@ for module in listModules(process.p):
 
 
 # Add PF2PAT output to the created file
-from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
-#process.load("CommonTools.ParticleFlow.PF2PAT_EventContent_cff")
-#process.out.outputCommands =  cms.untracked.vstring('drop *')
-process.out.outputCommands = cms.untracked.vstring('drop *',
-                                                   'keep recoPFCandidates_particleFlow_*_*',
-                                                   *patEventContentNoCleaning)
-
-process.out.outputCommands.extend( ['keep *_offlinePrimaryVertices*_*_*',
-                                    'keep *_goodOfflinePrimaryVertices*_*_*',
-                                    'keep double_*_rho_*',
-                                    'drop *_selectedPatJets*_caloTowers_*',
-                                    'drop *_selectedPatJetsForMETtype1p2CorrPFlow_*_*',
-                                    'drop *_selectedPatJetsForMETtype2CorrPFlow_*_*',
-                                    "keep GenEventInfoProduct_*_*_*",
-                                    "keep *recoGenParticles_genParticles__*",
-                                    "keep *_addPileupInfo__*",
-                                    "keep *_fixedGridRho*__*",
-                                    'keep recoBeamHaloSummary_BeamHaloSummary__*',
-                                    'keep recoGlobalHaloData_GlobalHaloData__*',
-                                    'keep HcalNoiseSummary_hcalnoise__*',
-                                    'keep LumiSummary_lumiProducer__*',
-                                    "keep *_ak5JetID__*",
-                                    "keep *_ak5CaloJets__*",
-                                    "keep *_ak5PFJets__*",
-                                    "keep *_ak4GenJets*__*",
-                                    "keep *_ak5GenJets*__*",
-                                    "keep *_genMet*__*",
-                                    "keep *_pfMet__*",
-                                    "keep *_pfMETPFlow__*",
-                                    "keep *_met__*",
-                                    "keep *_lumiProducer__*",
-                                    ] )
+process.out.outputCommands.extend( [
+    'keep *_offlinePrimaryVertices*_*_*',
+    'keep *_goodOfflinePrimaryVertices*_*_*',
+    'keep double_*_rho_*',
+    'drop *_selectedPatJets*_caloTowers_*',
+    'drop *_selectedPatJetsForMETtype1p2Corr%s_*_*' % postfix,
+    'drop *_selectedPatJetsForMETtype2Corr%s_*_*' % postfix,
+    "keep GenEventInfoProduct_*_*_*",
+    "keep *recoGenParticles_genParticles__*",
+    "keep *_addPileupInfo__*",
+    "keep *_fixedGridRho*__*",
+    'keep recoBeamHaloSummary_BeamHaloSummary__*',
+    'keep recoGlobalHaloData_GlobalHaloData__*',
+    'keep HcalNoiseSummary_hcalnoise__*',
+    'keep LumiSummary_lumiProducer__*',
+    "keep *_ak5JetID__*",
+    "keep *_ak5CaloJets__*",
+    "keep *_ak5PFJets__*",
+    "keep *_ak4GenJets*__*",
+    "keep *_ak5GenJets*__*",
+    "keep *_genMet*__*",
+    "keep *_pfMet__*",
+    "keep *_pfMET%s__*" % postfix,
+    "keep *_met__*",
+    "keep *_lumiProducer__*",
+    ] )
 
 # top projections in PF2PAT:
 getattr(process,"pfNoPileUp"+postfix).enable = True
@@ -364,7 +361,7 @@ process.out.outputCommands += corrMetOutputCommands
 # ------------------------------------------------------------------------------
 # PileupJetId
 # ------------------------------------------------------------------------------
-from RecoJets.JetProducers.PileupJetID_cfi import pileupJetIdProducer, pileupJetIdProducerChs
+from RecoJets.JetProducers.PileupJetID_53x_cfi import pileupJetIdProducer, pileupJetIdProducerChs
 process.calibratedAK5PFJetsCHS = cms.EDProducer('PFJetCorrectionProducer',
     src = cms.InputTag("pfNoTau"+postfix),
     correctors = cms.vstring("AK5PFchsCombinedCorrector")
@@ -396,7 +393,7 @@ process.out.outputCommands.extend(["keep recoPFMETs_noPileUpPFMEt_*_*", "keep *_
 # ------------------------------------------------------------------------------
 process.pfPileUpFlag = cms.EDProducer("PFPileUpFlag",
     pfCollection = cms.InputTag("particleFlow"),
-    pfPileUpCollection = cms.InputTag("pfPileUpPFlow")
+    pfPileUpCollection = cms.InputTag("pfPileUp"+postfix)
 )
 
 process.hltPFPileUpFlag = cms.EDProducer("PFPileUpFlag",
@@ -421,9 +418,9 @@ process.hltAK5JetID = cms.EDProducer("JetIDProducer", HLTJetIDParams,
 process.pfMetSig = cms.EDProducer('METSignificance',
       runOnMC              = cms.untracked.bool(True),
       #muonTag              = cms.untracked.InputTag('pfSelectedMuons'),
-      muonTag              = cms.untracked.InputTag('pfIsolatedMuonsPFlow'),
+      muonTag              = cms.untracked.InputTag('pfIsolatedMuons'+postfix),
       #electronTag          = cms.untracked.InputTag('pfSelectedElectrons'),
-      electronTag          = cms.untracked.InputTag('pfIsolatedElectronsPFlow'),
+      electronTag          = cms.untracked.InputTag('pfIsolatedElectrons'+postfix),
 
       #pfjetsTag            = cms.untracked.InputTag('pfJets'),
       pfjetsTag            = cms.untracked.InputTag('ak5PFJets'),  # WARNING: no cross-cleaning with leptons! I had to comment out the loops over leptons in METSignificance.cc
@@ -453,16 +450,3 @@ userOutputCommands = cms.untracked.vstring(
 )
 process.p += userSequence
 process.out.outputCommands += userOutputCommands
-
-# ------------------------------------------------------------------------------
-# GlobalTag
-# Check https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions
-# ------------------------------------------------------------------------------
-if isData:
-    #process.GlobalTag.globaltag = cms.string( autoCond[ 'hltonline' ] )  # this is currently the GR_P globaltag
-    process.GlobalTag.globaltag = cms.string( "GR_P_V42_AN4::All" )
-else:
-    #process.GlobalTag.globaltag = cms.string( autoCond[ 'startup' ] )
-    from Configuration.AlCa.GlobalTag import GlobalTag as customiseGlobalTag
-    process.GlobalTag = customiseGlobalTag(process.GlobalTag, globaltag = 'auto:startup_8E33v2')
-

@@ -69,7 +69,7 @@ parser.add_argument('-l', '--openhlt-template-file', action='store', metavar='FI
                     #required=True,
                     help="openHLT template file (default: "+oHLTconfig_template+")")
 
-parser.add_argument('--openhlt2pat-template-file', action='store', metavar='FILE', #type=str,
+parser.add_argument('-k', '--openhlt2pat-template-file', action='store', metavar='FILE', #type=str,
                     default=oHLTconfig_pattemplate,
                     #required=True,
                     help="openHLT2PAT template file (default: "+oHLTconfig_pattemplate+")")
@@ -115,6 +115,7 @@ except ValueError:
 
 oHLTconfig_out=args.openhlt_go_file
 oHLTconfig_template=args.openhlt_template_file
+oHLTconfig_pattemplate=args.openhlt2pat_template_file
 
 
 # Configurations from command line
