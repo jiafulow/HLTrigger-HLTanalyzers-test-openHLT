@@ -2,9 +2,9 @@
 # Setup for the first time (at FNAL)
 # ------------------------------------------------------------------------------
 #source /uscmst1/prod/sw/cms/cshrc prod
-#setenv SCRAM_ARCH slc5_amd64_gcc462
-#cmsrel CMSSW_5_3_14_patch2
-#cd CMSSW_5_3_14_patch2/src
+#setenv SCRAM_ARCH slc5_amd64_gcc481
+#cmsrel CMSSW_7_1_0_pre4
+#cd CMSSW_7_1_0_pre4/src
 #cmsenv
 #eval `ssh-agent`
 #ssh-add
@@ -29,13 +29,6 @@ git cms-addpkg HLTrigger/HLTanalyzers
 git cms-addpkg PhysicsTools/PatAlgos
 
 # ------------------------------------------------------------------------------
-# MET recipe
-# https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMetAnalysis
-# https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideMETRecipe53X
-# ------------------------------------------------------------------------------
-git cms-merge-topic -u TaiSakuma:53X-met-131120-01
-
-# ------------------------------------------------------------------------------
 # for MET filters
 # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFilters
 # ------------------------------------------------------------------------------
@@ -57,7 +50,7 @@ wget --no-check-certificate https://raw.githubusercontent.com/jiafulow/VHbbAnaly
 # https://twiki.cern.ch/twiki/bin/view/CMS/MVAMet
 # https://twiki.cern.ch/twiki/bin/view/CMS/NoPileUpMet
 # ------------------------------------------------------------------------------
-git-cms-merge-topic -u cms-met:53X-MVaNoPuMET-20131217-01
+git cms-addpkg RecoJets/JetProducers
 
 # PileupJetID
 # Steal from Phil Harris's Jets_Short repository to use 53x working points
