@@ -32,12 +32,6 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 #process.GlobalTag.globaltag = cms.string( autoCond[ 'startup' ] )
 process.load("Configuration.StandardSequences.MagneticField_cff")
 
-## Test JEC from test instances of the global DB
-#process.load("PhysicsTools.PatAlgos.patTestJEC_cfi")
-
-## Test JEC from local sqlite file
-#process.load("PhysicsTools.PatAlgos.patTestJEC_local_cfi")
-
 ## Standard PAT Configuration File
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
@@ -82,9 +76,12 @@ from PhysicsTools.PatAlgos.tools.pfTools import *
 postfix = "PFlow"
 jetAlgo = "AK5"
 inputJetCorrPayload = "AK5PFchs"
-inputJetCorrLabel = ['L1FastJet', 'L2Relative', 'L3Absolute']
-if isData:
+if not isData:
+    inputJetCorrLabel = ['L1FastJet', 'L2Relative', 'L3Absolute']
+    residual = ""
+else:
     inputJetCorrLabel = ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual']
+    residual = "Residual"
 
 #usePF2PAT(process,runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=True, postfix=postfix)
 # to turn on type-1 MET corrections, use the following call
@@ -104,22 +101,36 @@ usePF2PAT(process,
 getattr(process,"pfPileUp"+postfix).checkClosestZVertex = False
 
 # to use particle-based isolation in patDefaultSequence
-usePFIso( process )
+#usePFIso( process )
 
-## There are 3 corrections one can apply to the MET object, type-0, type-1 and type-2
-## your final MET object can be type-1, type-0+1, type-1+2, or type-0+1+2
-## a combination of the following instructions will allow you to get the type of MET that you desire in your
-## analysis
+# In 53X, this only works for patDefaultSequence, but not for patPF2PATSequence
+#addJetCollection(process, getattr(process, "patJets"+postfix).jetSource,
+#    "AK4", "PF",
+#    jetCorrLabel     = ("AK5PFchs", inputJetCorrLabel),
+#    doType1MET       = False,
+#    doL1Cleaning     = False,
+#    doL1Counters     = False,
+#    genJetCollection = (cms.InputTag("ak4GenJets") if not isData else None),
+#    doJetID          = False,
+#    )
+#if not isData:
+#    from RecoJets.Configuration.RecoGenJets_cff import ak4GenJets
+#    process.ak4GenJets = ak4GenJets
+#else:
+#    process.patJetsAK4PF.addGenJetMatch = cms.bool(False)
+#    process.patJetsAK4PF.embedGenJetMatch = cms.bool(False)
+#    process.patJetsAK4PF.addGenPartonMatch = cms.bool(False)
+#    process.patJetsAK4PF.getJetMCFlavour = cms.bool(False)
 
 ##to add type-0 corrections to your type-1 corrected MET uncomment the following:
-# getattr(process,'patType1CorrectedPFMet'+postfix).srcType1Corrections = cms.VInputTag(
-#     cms.InputTag("patPFJetMETtype1p2Corr"+postfix,"type1"),
-#     cms.InputTag("patPFMETtype0Corr"+postfix),
-#     )
-# getattr(process,'patType1p2CorrectedPFMet'+postfix).srcType1Corrections = cms.VInputTag(
-#     cms.InputTag("patPFJetMETtype1p2Corr"+postfix,"type1"),
-#     cms.InputTag("patPFMETtype0Corr"+postfix),
-#     )
+getattr(process,'patType1CorrectedPFMet'+postfix).srcType1Corrections = cms.VInputTag(
+    cms.InputTag("patPFJetMETtype1p2Corr"+postfix,"type1"),
+    cms.InputTag("pfMETcorrType0"),
+    )
+getattr(process,'patType1p2CorrectedPFMet'+postfix).srcType1Corrections = cms.VInputTag(
+    cms.InputTag("patPFJetMETtype1p2Corr"+postfix,"type1"),
+    cms.InputTag("pfMETcorrType0"),
+    )
 ## to add type-2 corrections to your type-1 or type-0+1 corrected MET uncomment the following:
 # getattr(process,'patMETs'+postfix).metSource = 'patType1p2CorrectedPFMet'+postfix
 
@@ -141,13 +152,36 @@ usePFIso( process )
 # to use GsfElectrons instead of PF electrons
 # useGsfElectrons(process,postfix)
 
+getattr(process,"selectedPatElectrons"+postfix).cut = cms.string("pt > 3  & abs(eta) < 2.5")
+getattr(process,"selectedPatMuons"+postfix).cut = cms.string("pt > 3 & abs(eta) < 2.5")
+getattr(process,"selectedPatTaus"+postfix).cut = cms.string("pt > 10 & abs(eta) < 2.5")
+getattr(process,"selectedPatPhotons"+postfix).cut = cms.string("pt > 10 & abs(eta) < 2.5")
+getattr(process,"selectedPatJets"+postfix).cut = cms.string("pt > 10")
+getattr(process,"patTaus"+postfix).isoDeposits = cms.PSet()
+getattr(process,"patPhotons"+postfix).isoDeposits = cms.PSet()
+
+# ERROR: bad jet algorithm: AK4 ! for now, only IC5, AK5 and AK7 are allowed. If you need other algorithms, please contact Colin
+#postfixAK4 = "AK4PFlow"
+#usePF2PAT(process,
+#    runPF2PAT=True,
+#    jetAlgo="AK4",
+#    runOnMC=(not isData),
+#    postfix=postfixAK4,
+#    jetCorrections=(inputJetCorrPayload, inputJetCorrLabel),
+#    pvCollection=cms.InputTag('goodOfflinePrimaryVertices'),
+#    typeIMetCorrections=True,
+#    outputModules=['out'])
+#getattr(process,"pfPileUp"+postfixAK4).checkClosestZVertex = False
+
 
 # ------------------------------------------------------------------------------
 # Let it run
 # ------------------------------------------------------------------------------
 process.p = cms.Path(
     process.goodOfflinePrimaryVertices
+  * process.type0PFMEtCorrection
   * getattr(process,"patPF2PATSequence"+postfix)
+ #* getattr(process,"patPF2PATSequence"+postfixAK4)
 )
 
 
@@ -189,17 +223,21 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
 process.out.outputCommands.extend( ['keep *_offlinePrimaryVertices*_*_*',
                                     'keep *_goodOfflinePrimaryVertices*_*_*',
                                     'keep double_*_rho_*',
+                                    'drop *_selectedPatJets*_caloTowers_*',
                                     'drop *_selectedPatJetsForMETtype1p2CorrPFlow_*_*',
                                     'drop *_selectedPatJetsForMETtype2CorrPFlow_*_*',
                                     "keep GenEventInfoProduct_*_*_*",
                                     "keep *recoGenParticles_genParticles__*",
                                     "keep *_addPileupInfo__*",
                                     "keep *_fixedGridRho*__*",
-                                    "keep *_BeamHaloSummary__*",
-                                    "keep *_GlobalHaloData__*",
+                                    'keep recoBeamHaloSummary_BeamHaloSummary__*',
+                                    'keep recoGlobalHaloData_GlobalHaloData__*',
+                                    'keep HcalNoiseSummary_hcalnoise__*',
+                                    'keep LumiSummary_lumiProducer__*',
                                     "keep *_ak5JetID__*",
                                     "keep *_ak5CaloJets__*",
                                     "keep *_ak5PFJets__*",
+                                    "keep *_ak4GenJets*__*",
                                     "keep *_ak5GenJets*__*",
                                     "keep *_genMet*__*",
                                     "keep *_pfMet__*",
@@ -215,12 +253,17 @@ getattr(process,"pfNoElectron"+postfix).enable = True
 getattr(process,"pfNoTau"+postfix).enable = False
 getattr(process,"pfNoJet"+postfix).enable = True
 
+#getattr(process,"pfNoPileUp"+postfixAK4).enable = True
+#getattr(process,"pfNoMuon"+postfixAK4).enable = True
+#getattr(process,"pfNoElectron"+postfixAK4).enable = True
+#getattr(process,"pfNoTau"+postfixAK4).enable = False
+#getattr(process,"pfNoJet"+postfixAK4).enable = True
+
 # verbose flags for the PF2PAT modules
-getattr(process,"pfNoMuon"+postfix).verbose = False
+#getattr(process,"pfNoMuon"+postfix).verbose = False
 
 # enable delta beta correction for muon selection in PF2PAT?
-getattr(process,"pfIsolatedMuons"+postfix).doDeltaBetaCorrection = False
-
+#getattr(process,"pfIsolatedMuons"+postfix).doDeltaBetaCorrection = False
 
 if isData:
     # NOTE: use "ak5PFL1FastL2L3" for MC / "ak5PFL1FastL2L3Residual" for Data
@@ -233,19 +276,6 @@ if isData:
     #    'AK5PFchsL2L3Residual'
     #    )
     pass
-
-# enable Type-0 MET Correction with PFCandidate
-#process.load("JetMETCorrections.Type1MET.pfMETCorrectionType0_cfi")
-#getattr(process,"pfType1CorrectedMet"+postfix).applyType0Corrections = cms.bool(False)
-#getattr(process,"pfType1CorrectedMet"+postfix).srcType1Corrections = cms.VInputTag(
-#    cms.InputTag("pfMETcorrType0"+postfix),
-#    cms.InputTag("pfJetMETcorr"+postfix, 'type1')
-#)
-#process.getattr("producePatPFMETCorrections"+postfix).replace(
-#    getattr(process,"pfCandMETcorr"+postfix),
-#    getattr(process,"type0PFMEtCorrection"+postfix) *
-#    getattr(process,"pfCandMETcorr"+postfix)
-#    )
 
 
 # ------------------------------------------------------------------------------
@@ -261,13 +291,21 @@ process.p_eeBadScFilter = cms.Path( process.eeBadScFilter )
 process.p_ecalLaserCorrFilter = cms.Path( process.ecalLaserCorrFilter )
 if isData:
     process.p_trkPOGFilters = cms.Path( process.trkPOGFilters )
-process.load("metOptionalFilters_cff")
+process.p_metFilters = cms.Path( process.metFilters )  # combined
+
+# Even more filters
+process.load("RecoMET.METFilters.metOptionalFilters_cff")
+process.jetIDFailure.JetSource = cms.InputTag('patJets'+postfix)
 process.p_goodVerticesFilter = cms.Path( process.goodVerticesFilter )
 process.p_noscraping = cms.Path( process.noscraping )
 if isData:
     process.p_hcallasereventfilter2012 = cms.Path( process.hcallasereventfilter2012 )
 process.p_EcalDeadCellBoundaryEnergyFilter = cms.Path( process.EcalDeadCellBoundaryEnergyFilter )
 process.p_tobtecfakesFilters = cms.Path( process.tobtecfakesFilters )
+process.p_jetIDFailure = cms.Path( process.jetIDFailure )
+process.p_badMuonFilters = cms.Path( process.badMuonFilters )
+process.p_eeNoiseFilter = cms.Path( process.eeNoiseFilter )
+process.p_metOptionalFilters = cms.Path( process.metOptionalFilters )  # combined
 
 
 # ------------------------------------------------------------------------------
@@ -277,10 +315,7 @@ process.p_tobtecfakesFilters = cms.Path( process.tobtecfakesFilters )
 ##____________________________________________________________________________||
 process.load("JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff")
 
-if not isData:
-    process.corrPfMetType1.jetCorrLabel = cms.string("ak5PFL1FastL2L3")
-else:
-    process.corrPfMetType1.jetCorrLabel = cms.string("ak5PFL1FastL2L3Residual")
+process.corrPfMetType1.jetCorrLabel = "ak5PFL1FastL2L3" + residual
 
 ##____________________________________________________________________________||
 process.load("JetMETCorrections.Type1MET.correctionTermsPfMetType0PFCandidate_cff")
@@ -330,14 +365,13 @@ process.out.outputCommands += corrMetOutputCommands
 # PileupJetId
 # ------------------------------------------------------------------------------
 from RecoJets.JetProducers.PileupJetID_cfi import pileupJetIdProducer, pileupJetIdProducerChs
-
-process.pileupJetIdProducerChsPFlow = pileupJetIdProducerChs.clone(
-    jets = cms.InputTag("pfNoTauPFlow"),  # PAT jets are no longer supported
-    inputIsCorrected = False,
-    applyJec = True,
+process.calibratedAK5PFJetsCHS = cms.EDProducer('PFJetCorrectionProducer',
+    src = cms.InputTag("pfNoTau"+postfix),
+    correctors = cms.vstring("AK5PFchsCombinedCorrector")
 )
-process.p += process.pileupJetIdProducerChsPFlow
-process.out.outputCommands.extend(["keep *_pileupJetIdProducerChsPFlow_*_*"])
+process.pileupJetIdProducerCHS = pileupJetIdProducerChs.clone( jets = cms.InputTag('calibratedAK5PFJetsCHS') )
+process.p += (process.calibratedAK5PFJetsCHS * process.pileupJetIdProducerCHS)
+process.out.outputCommands.extend(["keep *_pileupJetIdProducerCHS_*_*"])
 
 
 # ------------------------------------------------------------------------------
@@ -345,20 +379,16 @@ process.out.outputCommands.extend(["keep *_pileupJetIdProducerChsPFlow_*_*"])
 # ------------------------------------------------------------------------------
 process.load("metPUSubtraction_cff")
 
-if isData:
-    process.calibratedAK5PFJetsForPFMEtMVA.correctors = cms.vstring("ak5PFL1FastL2L3Residual")
-    process.calibratedAK5PFJetsForNoPileUpPFMEt.correctors = cms.vstring("ak5PFL1FastL2L3Residual")
-else:
-    process.calibratedAK5PFJetsForPFMEtMVA.correctors = cms.vstring("ak5PFL1FastL2L3")
-    process.calibratedAK5PFJetsForNoPileUpPFMEt.correctors = cms.vstring("ak5PFL1FastL2L3")
+process.calibratedAK5PFJetsForPFMEtMVA.correctors = cms.vstring("ak5PFL1FastL2L3" + residual)
+process.calibratedAK5PFJetsForNoPileUpPFMEt.correctors = cms.vstring("ak5PFL1FastL2L3" + residual)
 process.pfMEtMVA.srcLeptons = cms.VInputTag("isomuons","isoelectrons","isotaus")
 process.noPileUpPFMEt.srcLeptons = cms.VInputTag("isomuons","isoelectrons","isotaus")
 
 process.p_mvaPFMET = cms.Path(process.pfMEtMVAsequence2)
-process.out.outputCommands.extend(["keep *_pfMEtMVA_*_*", "keep *_pileupJetIdProducerForPFMEtMVA_*_*", "keep *_pileupJetIdProducerForPFMEtMVA2_*_*"])
+process.out.outputCommands.extend(["keep recoPFMETs_pfMEtMVA_*_*", "keep *_pileupJetIdProducerForPFMEtMVA_*_*"])
 
 process.p_noPUPFMET = cms.Path(process.noPileUpPFMEtSequence2)
-process.out.outputCommands.extend(["keep *_noPileUpPFMEt_*_*", "keep *_pileupJetIdForNoPileUpPFMEt_*_*"])
+process.out.outputCommands.extend(["keep recoPFMETs_noPileUpPFMEt_*_*", "keep *_pileupJetIdProducerForNoPileUpPFMEt_*_*"])
 
 
 # ------------------------------------------------------------------------------

@@ -1,10 +1,14 @@
-source /uscmst1/prod/sw/cms/cshrc prod  # only at FNAL
-setenv SCRAM_ARCH slc5_amd64_gcc462
+# ------------------------------------------------------------------------------
+# Setup for the first time (at FNAL)
+# ------------------------------------------------------------------------------
+#source /uscmst1/prod/sw/cms/cshrc prod
+#setenv SCRAM_ARCH slc5_amd64_gcc462
+#cmsrel CMSSW_5_3_14_patch2
+#cd CMSSW_5_3_14_patch2/src
+#cmsenv
+#eval `ssh-agent`
+#ssh-add
 
-## Prepare working area
-cmsrel CMSSW_5_3_14_patch2
-cd CMSSW_5_3_14_patch2/src
-cmsenv
 
 # ------------------------------------------------------------------------------
 # for HLT
@@ -35,32 +39,37 @@ git cms-merge-topic -u TaiSakuma:53X-met-131120-01
 # for MET filters
 # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFilters
 # ------------------------------------------------------------------------------
-# I believe it is all updated using TaiSakuma:53X-met-131120-01
+git cms-addpkg RecoMET/METFilters
 
-# ------------------------------------------------------------------------------
-# TobTecFakesFilter
-# ------------------------------------------------------------------------------
+# Add missing plugin 'TobTecFakesFilter' (from VHbbAnalysis repo)
 #cvs co -d KStenson/TrackingFilters UserCode/KStenson/TrackingFilters
 #cp KStenson/TrackingFilters/plugins/TobTecFakesFilter.cc RecoMET/METFilters/plugins/
 #cp KStenson/TrackingFilters/python/tobtecfakesfilter_cfi.py RecoMET/METFilters/python/
 #rm -rf KStenson/TrackingFilters
-git cms-addpkg RecoMET/METFilters
-wget --no-check-certificate https://gist.githubusercontent.com/jiafulow/1cecbd551b4075219af4/raw/d7fb810e20a18330be8de0e00bb127878f1573a6/TobTecFakesFilter.cc -O RecoMET/METFilters/plugins/TobTecFakesFilter.cc
+wget --no-check-certificate https://raw.githubusercontent.com/jiafulow/VHbbAnalysis/CMSSW_7_0_0_dev/additionalFiles/sandbox/TobTecFakesFilter.cc -O RecoMET/METFilters/plugins/TobTecFakesFilter.cc
+
+# Add more optional MET filters (from VHbbAnalysis repo)
+wget --no-check-certificate https://raw.githubusercontent.com/jiafulow/VHbbAnalysis/CMSSW_7_0_0_dev/additionalFiles/sandbox/metOptionalFilters_cff.py -O RecoMET/METFilters/python/metOptionalFilters_cff.py
+
 
 # ------------------------------------------------------------------------------
-# MVA and No-PU MET
+# PileupJetID, MVA and No-PU MET
+# https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetID
 # https://twiki.cern.ch/twiki/bin/view/CMS/MVAMet
 # https://twiki.cern.ch/twiki/bin/view/CMS/NoPileUpMet
-# https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetID
 # ------------------------------------------------------------------------------
-git-cms-merge-topic -v -u cms-met:53X-MVaNoPuMET-20131217-01
+git-cms-merge-topic -u cms-met:53X-MVaNoPuMET-20131217-01
 
 # PileupJetID
-# These use the 53x working points
-wget --no-check-certificate https://gist.githubusercontent.com/jiafulow/1cecbd551b4075219af4/raw/bb9b2a980a6a24dd5b3e9398c1a86cbbb0960855/PileupJetIDCutParams_cfi.py -O RecoJets/JetProducers/python/PileupJetIDCutParams_cfi.py
-wget --no-check-certificate https://gist.githubusercontent.com/jiafulow/1cecbd551b4075219af4/raw/dd6b50421040a0e8fd06b49f3dbfe4244cf7778a/PileupJetIDParams_cfi.py -O RecoJets/JetProducers/python/PileupJetIDParams_cfi.py
-wget --no-check-certificate https://gist.githubusercontent.com/jiafulow/1cecbd551b4075219af4/raw/54c57a282b0aa5f3b8350e2aa4c10699fbd804b8/PileupJetID_cfi.py -O RecoJets/JetProducers/python/PileupJetID_cfi.py
+# Steal from Phil Harris's Jets_Short repository to use 53x working points
+wget --no-check-certificate https://raw.githubusercontent.com/violatingcp/Jets_Short/832d3b/RecoJets/JetProducers/python/PileupJetIDCutParams_cfi.py -O RecoJets/JetProducers/python/PileupJetIDCutParams_cfi.py
+wget --no-check-certificate https://raw.githubusercontent.com/violatingcp/Jets_Short/832d3b/RecoJets/JetProducers/python/PileupJetIDParams_cfi.py -O RecoJets/JetProducers/python/PileupJetIDParams_cfi.py
+wget --no-check-certificate https://raw.githubusercontent.com/jiafulow/VHbbAnalysis/CMSSW_7_0_0_dev/additionalFiles/sandbox/PileupJetID_53x_cfi.py -O RecoJets/JetProducers/python/PileupJetID_53x_cfi.py
 touch RecoJets/JetProducers/data/dummy.txt
+
+# Get rid of warnings
+#cp RecoJets/JetProducers/data/TMVAClassificationCategory_JetID_53X_chs_Dec2012.weights.xml RecoJets/JetProducers/data/TMVAClassificationCategory_JetID_53X_chs_Dec2012.orig.weights.xml
+#sed -i 's/jetPt \&gt; 20\.0/jetPt \&gt; 0.0/' RecoJets/JetProducers/data/TMVAClassificationCategory_JetID_53X_chs_Dec2012.weights.xml
 
 # ------------------------------------------------------------------------------
 # LumiCalc (note: using GIT)
@@ -72,8 +81,9 @@ touch RecoJets/JetProducers/data/dummy.txt
 #cd -
 
 
-## Finish up
-#checkdeps -a
-scram b -j4
+# ------------------------------------------------------------------------------
+# Compile
+# ------------------------------------------------------------------------------
+scram b -j8
 rehash
 

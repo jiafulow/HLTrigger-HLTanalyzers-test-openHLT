@@ -52,16 +52,13 @@ full_met_53x = cms.PSet(
     ),
 )
 
-from RecoJets.JetProducers.PileupJetID_cfi import pileupJetIdProducer
+from RecoJets.JetProducers.PileupJetID_53x_cfi import pileupJetIdProducer
 from RecoJets.JetProducers.PileupJetIDParams_cfi import full_53x
 pileupJetIdProducerForPFMEtMVA = pileupJetIdProducer.clone(
     jets = cms.InputTag("calibratedAK5PFJetsForPFMEtMVA"),
-)
-pileupJetIdProducerForPFMEtMVA2 = pileupJetIdProducer.clone(
-    jets = cms.InputTag("calibratedAK5PFJetsForPFMEtMVA"),
     algos = cms.VPSet(full_met_53x),
 )
-pileupJetIdForNoPileUpPFMEt = pileupJetIdProducer.clone(
+pileupJetIdProducerForNoPileUpPFMEt = pileupJetIdProducer.clone(
     jets = cms.InputTag("calibratedAK5PFJetsForNoPileUpPFMEt"),
     algos = cms.VPSet(full_53x),
 )
@@ -71,13 +68,12 @@ pileupJetIdForNoPileUpPFMEt = pileupJetIdProducer.clone(
 from RecoMET.METPUSubtraction.mvaPFMET_leptons_cff import isomuons, hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits, hpsPFTauDiscriminationAgainstMuon2, isotaus, isoelectrons, calibratedAK5PFJetsForPFMEtMVA, pfMEtMVA, pfMEtMVAsequence
 pfMEtMVAsequence2 = pfMEtMVAsequence
 pfMEtMVAsequence2 += pileupJetIdProducerForPFMEtMVA
-pfMEtMVAsequence2 += pileupJetIdProducerForPFMEtMVA2
 
 #from RecoMET.METPUSubtraction.noPileUpPFMET_cff import noPileUpPFMEtSequence
 from RecoMET.METPUSubtraction.noPileUpPFMET_cff import calibratedAK5PFJetsForNoPileUpPFMEt, puJetIdForNoPileUpPFMEt, selectedVerticesForPFMEtCorrType0, selectedPrimaryVertexHighestPtTrackSumForPFMEtCorrType0, particleFlowDisplacedVertex, trackToVertexAssociation, pfCandidateToVertexAssociation, pfMETcorrType0, pfCandidateToVertexAssociationForNoPileUpPFMEt, pfMETcorrType0ForNoPileUpPFMEt, jvfJetIdForNoPileUpPFMEt, noPileUpPFMEtData, noPileUpPFMEt, noPileUpPFMEtSequence
-noPileUpPFMEtData.srcJetIds = cms.InputTag('pileupJetIdForNoPileUpPFMEt', 'fullId')
+noPileUpPFMEtData.srcJetIds = cms.InputTag('pileupJetIdProducerForNoPileUpPFMEt', 'fullId')
 noPileUpPFMEtSequence2 = noPileUpPFMEtSequence
-noPileUpPFMEtSequence2.replace(puJetIdForNoPileUpPFMEt, pileupJetIdForNoPileUpPFMEt)
+noPileUpPFMEtSequence2.replace(puJetIdForNoPileUpPFMEt, pileupJetIdProducerForNoPileUpPFMEt)
 noPileUpPFMEtSequence2.remove(pfCandidateToVertexAssociation)
 noPileUpPFMEtSequence2.remove(pfMETcorrType0)
 noPileUpPFMEtSequence2.remove(jvfJetIdForNoPileUpPFMEt)
