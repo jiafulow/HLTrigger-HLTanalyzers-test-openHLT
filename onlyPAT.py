@@ -70,12 +70,12 @@ parser.add_argument('-l', '--openhlt-template-file', action='store', metavar='FI
                     #required=True,
                     help="openHLT template file (default: "+oHLTconfig_template+")")
 
-parser.add_argument('-k', '--onlypat-template-file', action='store', metavar='FILE', #type=str,
+parser.add_argument('--onlypat-template-file', action='store', metavar='FILE', #type=str,
                     default=oPATconfig_template,
                     #required=True,
                     help="onlyPAT template file (default: "+oPATconfig_template+")")
 
-parser.add_argument('--openhlt2pat-template-file', action='store', metavar='FILE', #type=str,
+parser.add_argument('-k', '--openhlt2pat-template-file', action='store', metavar='FILE', #type=str,
                     default=oHLTconfig_pattemplate,
                     #required=True,
                     help="openHLT2PAT template file (default: "+oHLTconfig_pattemplate+")")
@@ -204,16 +204,16 @@ temp=temp.replace("$PATCONFIG", pattemp)
 other_changes=""
 for change in args.other_changes: other_changes=other_changes+change+"\n"
 
-if args.skim_cfi:
-    if args.skim_cfi.endswith(".py"):  args.skim_cfi = args.skim_cfi[:-3].replace("/",".")
-    skim_module = args.skim_cfi.split(".")[-1]
-    if skim_module.endswith("_cfi"):  skim_module = skim_module[:-4]
-    skim_module_renamed = "dontignore" + skim_module[0].upper() + skim_module[1:]
-
-    skim_module_import = "from %s import %s\n" % (args.skim_cfi, skim_module)
-    skim_module_import += "process.%s = %s.clone()\n" % (skim_module_renamed, skim_module)
-    skim_module_import += "process.HLTBeginSequence.insert(0, process.%s)\n" % (skim_module_renamed)
-    other_changes += skim_module_import
+#if args.skim_cfi:
+#    if args.skim_cfi.endswith(".py"):  args.skim_cfi = args.skim_cfi[:-3].replace("/",".")
+#    skim_module = args.skim_cfi.split(".")[-1]
+#    if skim_module.endswith("_cfi"):  skim_module = skim_module[:-4]
+#    skim_module_renamed = "dontignore" + skim_module[0].upper() + skim_module[1:]
+#
+#    skim_module_import = "from %s import %s\n" % (args.skim_cfi, skim_module)
+#    skim_module_import += "process.%s = %s.clone()\n" % (skim_module_renamed, skim_module)
+#    skim_module_import += "process.HLTBeginSequence.insert(0, process.%s)\n" % (skim_module_renamed)
+#    other_changes += skim_module_import
 
 
 temp=temp.replace("$OTHERCHANGES", other_changes.strip())

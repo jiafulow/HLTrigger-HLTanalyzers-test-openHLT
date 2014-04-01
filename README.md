@@ -62,6 +62,12 @@ cmsRun openhlt_go.py
 python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET.py -n 1000
 ```
 
+For PAT only (on Data, nothing is open):
+```sh
+python onlyPAT.py -p -i inputfiles/ifiles_MET_RAWAOD_208307.py -o MyProducts.MET.root -n 1000
+cmsRun openhlt_go.py
+```
+
 To run on MC, add argument `--mc`.
 
 
@@ -91,9 +97,9 @@ cd HLTrigger/HLTanalyzers/test/openHLT
 Before the first run (on Data):
 ```sh
 # To get the full menu
-#hltGetConfiguration /dev/CMSSW_7_1_0/GRun/V7 --full --offline --data --unprescale  --no-output --process HLT3 --globaltag auto:hltonline_GRun > ! hlt_710_V7.py
+#hltGetConfiguration /dev/CMSSW_7_1_0/GRun/V7 --full --offline --data --unprescale --no-output --process HLT3 --globaltag auto:hltonline_GRun > ! hlt_710_V7.py
 # To get a menu with selected paths
-#hltGetConfiguration /dev/CMSSW_7_1_0/GRun/V7 --full --offline --data --unprescale  --no-output --process HLT3 --globaltag auto:hltonline_GRun --path HLT_PFMET150_v8 > ! hlt_710_V7_PFMET150.py
+#hltGetConfiguration /dev/CMSSW_7_1_0/GRun/V7 --full --offline --data --unprescale --no-output --process HLT3 --globaltag auto:hltonline_GRun --path HLT_PFMET150_v8 > ! hlt_710_V7_PFMET150.py
 ```
 
 To run on MC, change `--globaltag auto:hltonline` to `--globaltag auto:startup`. The arguments `--unprescale` and `--process HLT3` are necessary.
@@ -111,14 +117,20 @@ cmsRun openhlt_go.py
 For openHLT2PAT (on Data):
 ```sh
 # Producer step
-python openHLT2PAT.py -p -i inputfiles/ifiles_MET_RAWAOD_7XY.py -o MyProducts.MET.root -t hlt_710_V7.py -k openHLT2PAT_7_1_0.TEMPLATE -s skimfiles/skimHLTL1ETM40_cfi.py -n 1000
+python openHLT2PAT.py -p -i inputfiles/ifiles_MET_RAWAOD_7XY.py -o MyProducts.MET.root -t hlt_710_V7.py -s skimfiles/skimHLTL1ETM40_cfi.py -k openHLT2PAT_7_1_0.TEMPLATE -n 1000
 
 cmsRun openhlt_go.py
 # Filter step (NOTE: use openHLT.py)
 python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET.py -n 1000
 ```
 
-To run on MC, add argument `--mc`.
+For PAT only (on Data, nothing is open):
+```sh
+python onlyPAT.py -p -i inputfiles/ifiles_MET_RAWAOD_7XY.py -o MyProducts.MET.root -k openHLT2PAT_7_1_0.TEMPLATE -n 1000
+cmsRun openhlt_go.py
+```
+
+To run on MC, add argument `--mc`. Note that `-k openHLT2PAT_7_1_0.TEMPLATE` is needed, otherwise the python scripts will read `openHLT2PAT.TEMPLATE` that is meant for `CMSSW_5_3_X`.
 
 
 ## Nota Bene
