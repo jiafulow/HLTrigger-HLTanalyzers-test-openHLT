@@ -137,7 +137,7 @@ getattr(process,"patPhotons"+postfix).isoDeposits = cms.PSet()
 process.out.outputCommands.extend( [
     'keep *_offlinePrimaryVertices*_*_*',
     'keep *_goodOfflinePrimaryVertices*_*_*',
-    'keep double_*_rho_*',
+    'keep double_*_rho_RECO',
     'drop *_selectedPatJets*_caloTowers_*',
     'drop *_selectedPatJetsForMETtype1p2Corr%s_*_*' % postfix,
     'drop *_selectedPatJetsForMETtype2Corr%s_*_*' % postfix,

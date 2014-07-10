@@ -18,7 +18,7 @@ openHLT2PAT (CMSSW_5_3_X)
 
 See the file [addpkg_5_3_14.txt](addpkg_5_3_14.txt) to setup environment for `CMSSW_5_3_14_patch2`.
 
-2014-02-25: updated from `CMSSW_5_3_11` to `CMSSW_5_3_14_patch2`.
+2014-02-25: updated from `CMSSW_5_3_11` to `CMSSW_5_3_14_patch2`.  
 
 ### Checkout
 
@@ -81,8 +81,8 @@ openHLT2PAT (CMSSW_7_1_X)
 
 See the file [addpkg_7_1_0.txt](addpkg_7_1_0.txt) to setup environment for `CMSSW_7_1_0`.
 
-2014-07-09: Updated to work in `CMSSW_7_1_0`, notably AK5 -> AK4.
-2014-02-25: Updated both [openHLT.py](openHLT.py) and [openHLT.TEMPLATE](openHLT.TEMPLATE) to work in `CMSSW_7_X_Y`.
+2014-07-09: Updated to work in `CMSSW_7_1_0`, notably AK5 -> AK4.  
+2014-02-25: Updated both [openHLT.py](openHLT.py) and [openHLT.TEMPLATE](openHLT.TEMPLATE) to work in `CMSSW_7_X_Y`.  
 
 ### Checkout
 
@@ -102,7 +102,7 @@ Before the first run (on Data):
 # To get the full menu
 #hltGetConfiguration /dev/CMSSW_7_1_0/GRun/V52 --full --offline --data --unprescale --no-output --process HLT3 --globaltag auto:hltonline_GRun > ! hlt_710_V52.py
 # To get a menu with selected paths
-#hltGetConfiguration /dev/CMSSW_7_1_0/GRun/V52 --full --offline --data --unprescale --no-output --process HLT3 --globaltag auto:hltonline_GRun --path HLT_PFMET150_v8 > ! hlt_710_V52_PFMET150.py
+#hltGetConfiguration /dev/CMSSW_7_1_0/GRun/V52 --full --offline --data --unprescale --no-output --process HLT3 --globaltag auto:hltonline_GRun --path HLT_PFMET150_v8 > ! hlt_PFMET150_710_V52.py
 ```
 
 To run on MC, change `--globaltag auto:hltonline` to `--globaltag auto:startup`. The arguments `--unprescale` and `--process HLT3` are necessary.
@@ -110,21 +110,21 @@ To run on MC, change `--globaltag auto:hltonline` to `--globaltag auto:startup`.
 For openHLT only (on Data):
 ```sh
 # Producer step
-python openHLT.py -p -i /store/data/Run2012D/MET/RAW/v1/000/207/454/143F6068-BB30-E211-B02B-003048D2C108.root -o MyProducts.MET.root -t hlt_710_V52.py -n 1000
+python openHLT.py -p -i /store/data/Run2012D/MET/RAW/v1/000/207/454/143F6068-BB30-E211-B02B-003048D2C108.root -o MyProducts.MET.root -t hlt_MET_710_V52.py -n 100
 cmsRun openhlt_go.py
 # Filter step
-python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET.py -n 1000
+python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET_710_V52.py -n 100
 cmsRun openhlt_go.py
 ```
 
 For openHLT2PAT (on Data):
 ```sh
 # Producer step
-python openHLT2PAT.py -p -i inputfiles/ifiles_MET_RAWAOD_7XY.py -o MyProducts.MET.root -t hlt_710_V52.py -s skimfiles/skimHLTL1ETM40_cfi.py -k openHLT2PAT_7_1_0.TEMPLATE -n 1000
+python openHLT2PAT.py -p -i inputfiles/ifiles_MET_RAWAOD_7XY.py -o MyProducts.MET.root -t hlt_MET_710_V52.py -k openHLT2PAT_7_1_0.TEMPLATE -n 100
 
 cmsRun openhlt_go.py
 # Filter step (NOTE: use openHLT.py)
-python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET.py -n 1000
+python openHLT.py -i MyProducts.MET.root -o MyFilters.MET.root -t hlt_MET_710_V52.py -n 100
 ```
 
 For PAT only (on Data, not open):
