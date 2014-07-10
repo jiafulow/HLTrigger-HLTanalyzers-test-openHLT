@@ -13,7 +13,7 @@
 
 ## Options and Output Report
 process.options = cms.untracked.PSet(
-    wantSummary = cms.untracked.bool( True ),
+    wantSummary = cms.untracked.bool(True),
     #SkipEvent = cms.untracked.vstring('ProductNotFound')
     ## switch to uncheduled mode
     allowUnscheduled = cms.untracked.bool(True)
@@ -41,12 +41,12 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
 ## Output Module Configuration (expects a path 'p')
-from PhysicsTools.PatAlgos.patEventContent_cff import patEventContent
+from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName = cms.untracked.string('patTuple.root'),
                                # save PAT Layer 1 output; you need a '*' to
                                # unpack the list of commands 'patEventContent'
-                               outputCommands = cms.untracked.vstring('drop *', 'keep recoPFCandidates_particleFlow_*_*', *patEventContent )
+                               outputCommands = cms.untracked.vstring('drop *', 'keep recoPFCandidates_particleFlow_*_*', *patEventContentNoCleaning )
                                )
 process.outpath = cms.EndPath(process.out)
 
@@ -73,8 +73,8 @@ process.outpath = cms.EndPath(process.out)
 ################################################################################
 
 postfix = ""
-jetAlgo = "AK5"
-inputJetCorrPayload = "AK5PFchs"
+jetAlgo = "AK4"
+inputJetCorrPayload = "AK5PFchs"  # Temporary fix to have AK5 payloads until the AK4 payloads are ready
 if not isData:
     inputJetCorrLabel = ['L1FastJet', 'L2Relative', 'L3Absolute']
     residual = ""
@@ -89,33 +89,35 @@ if isData:
     from PhysicsTools.PatAlgos.tools.coreTools import runOnData
     runOnData(process)
 
-# addJetCollection(...) has to happen before switchJetCollection(...),
-# otherwise it gives errors when trying to add btag discriminators
-from PhysicsTools.PatAlgos.tools.jetTools import addJetCollection, switchJetCollection
-outputModules = ['out']
-btagInfos = [
-    'impactParameterTagInfos', 'secondaryVertexTagInfos',
-    'inclusiveSecondaryVertexFinderTagInfos', 'inclusiveSecondaryVertexFinderFilteredTagInfos',
-    ]
-btagDiscriminators = [
-    'jetBProbabilityBJetTags', 'jetProbabilityBJetTags',
-    'combinedSecondaryVertexBJetTags', 'combinedSecondaryVertexPositiveBJetTags',
-    #'combinedSecondaryVertexV1BJetTags','combinedSecondaryVertexSoftPFLeptonV1BJetTags',
-    'combinedSecondaryVertexMVABJetTags', 'combinedInclusiveSecondaryVertexBJetTags',
-    'combinedInclusiveSecondaryVertexPositiveBJetTags'
-    ]
+makeAK5 = False
+if makeAK5:
+    # addJetCollection(...) has to happen before switchJetCollection(...),
+    # otherwise it gives errors when trying to add btag discriminators
+    from PhysicsTools.PatAlgos.tools.jetTools import addJetCollection, switchJetCollection
+    outputModules = ['out']
+    btagInfos = [
+        'impactParameterTagInfos', 'secondaryVertexTagInfos',
+        'inclusiveSecondaryVertexFinderTagInfos', 'inclusiveSecondaryVertexFinderFilteredTagInfos',
+        ]
+    btagDiscriminators = [
+        'jetBProbabilityBJetTags', 'jetProbabilityBJetTags',
+        'combinedSecondaryVertexBJetTags', 'combinedSecondaryVertexPositiveBJetTags',
+        #'combinedSecondaryVertexV1BJetTags','combinedSecondaryVertexSoftPFLeptonV1BJetTags',
+        'combinedSecondaryVertexMVABJetTags', 'combinedInclusiveSecondaryVertexBJetTags',
+        'combinedInclusiveSecondaryVertexPositiveBJetTags'
+        ]
 
-addJetCollection(process,
-    labelName = 'AK4PFCHS',
-    postfix = postfix,
-    jetSource = cms.InputTag('ak4PFJetsCHS'),
-    algo = 'AK4',
-    jetCorrections = ('AK5PFchs', inputJetCorrLabel, ''),
-    btagDiscriminators = btagDiscriminators,
-    btagInfos = btagInfos,
-    jetTrackAssociation = True,
-    outputModules = outputModules,
-    )
+    addJetCollection(process,
+        labelName = 'AK5PFCHS',
+        postfix = postfix,
+        jetSource = cms.InputTag('ak5PFJetsCHS'),
+        algo = 'AK5',
+        jetCorrections = ('AK5PFchs', inputJetCorrLabel, ''),
+        btagDiscriminators = btagDiscriminators,
+        btagInfos = btagInfos,
+        jetTrackAssociation = True,
+        outputModules = outputModules,
+        )
 
 ##to add type-0 corrections to your type-1 corrected MET uncomment the following:
 getattr(process,'pfType1CorrectedMet'+postfix).applyType0Corrections = cms.bool(True)
@@ -147,9 +149,9 @@ process.out.outputCommands.extend( [
     'keep recoGlobalHaloData_GlobalHaloData__*',
     'keep HcalNoiseSummary_hcalnoise__*',
     'keep LumiSummary_lumiProducer__*',
-    "keep *_ak5JetID__*",
-    "keep *_ak5CaloJets__*",
-    "keep *_ak5PFJets__*",
+    "keep *_ak4JetID__*",
+    "keep *_ak4CaloJets__*",
+    "keep *_ak4PFJets__*",
     "keep *_ak4GenJets*__*",
     "keep *_ak5GenJets*__*",
     "keep *_genMet*__*",
@@ -197,7 +199,7 @@ process.p_metOptionalFilters = cms.Path( process.metOptionalFilters )  # combine
 ##____________________________________________________________________________||
 process.load("JetMETCorrections.Type1MET.correctionTermsPfMetType1Type2_cff")
 
-process.corrPfMetType1.jetCorrLabel = "ak5PFL1FastL2L3" + residual
+process.corrPfMetType1.jetCorrLabel = "ak4PFL1FastL2L3" + residual
 
 ##____________________________________________________________________________||
 process.load("JetMETCorrections.Type1MET.correctionTermsPfMetType0PFCandidate_cff")
@@ -248,23 +250,23 @@ process.out.outputCommands += corrMetOutputCommands
 # ------------------------------------------------------------------------------
 #process.load("JetMETCorrections.Configuration.JetCorrectionServices_cff")
 # Convert algorithm from AK5PFCHS to AK5PFchs
-process.ak5PFCHSL1Offset.algorithm = cms.string('AK5PFchs')
-process.ak5PFCHSL1Fastjet.algorithm = cms.string('AK5PFchs')
-process.ak5PFCHSL2Relative.algorithm = cms.string('AK5PFchs')
-process.ak5PFCHSL3Absolute.algorithm = cms.string('AK5PFchs')
-process.ak5PFCHSResidual.algorithm = cms.string('AK5PFchs')
-process.calibratedAK5PFJets = cms.EDProducer('PFJetCorrectionProducer',
-    src = cms.InputTag('ak5PFJets'),
-    correctors = cms.vstring("ak5PFL1FastL2L3"+residual)
-)
-process.calibratedAK5PFJetsCHS = cms.EDProducer('PFJetCorrectionProducer',
-    src = cms.InputTag("ak5PFJetsCHS"),
-    correctors = cms.vstring("ak5PFCHSL1FastL2L3"+residual)
-)
-from RecoJets.JetProducers.PileupJetID_53x_cfi import pileupJetIdProducerChs, pileupJetIdProducer
-process.pileupJetIdProducerCHS = pileupJetIdProducerChs.clone( jets = cms.InputTag('calibratedAK5PFJetsCHS') )
-process.pileupJetIdProducer = pileupJetIdProducer.clone( jets = cms.InputTag('calibratedAK5PFJets') )
-process.out.outputCommands += ['keep *_pileupJetIdProducerCHS_*_*', 'keep *_pileupJetIdProducer_*_*']
+#process.ak4PFCHSL1Offset.algorithm = cms.string('AK5PFchs')
+#process.ak4PFCHSL1Fastjet.algorithm = cms.string('AK5PFchs')
+#process.ak4PFCHSL2Relative.algorithm = cms.string('AK5PFchs')
+#process.ak4PFCHSL3Absolute.algorithm = cms.string('AK5PFchs')
+#process.ak4PFCHSResidual.algorithm = cms.string('AK5PFchs')
+#process.calibratedAK4PFJets = cms.EDProducer('PFJetCorrectionProducer',
+#    src = cms.InputTag('ak4PFJets'),
+#    correctors = cms.vstring("ak4PFL1FastL2L3"+residual)
+#)
+#process.calibratedAK4PFJetsCHS = cms.EDProducer('PFJetCorrectionProducer',
+#    src = cms.InputTag("ak4PFJetsCHS"),
+#    correctors = cms.vstring("ak4PFCHSL1FastL2L3"+residual)
+#)
+#from RecoJets.JetProducers.PileupJetID_53x_cfi import pileupJetIdProducerChs, pileupJetIdProducer
+#process.pileupJetIdProducerCHS = pileupJetIdProducerChs.clone( jets = cms.InputTag('calibratedAK4PFJetsCHS') )
+#process.pileupJetIdProducer = pileupJetIdProducer.clone( jets = cms.InputTag('calibratedAK4PFJets') )
+#process.out.outputCommands += ['keep *_pileupJetIdProducerCHS_*_*', 'keep *_pileupJetIdProducer_*_*']
 
 
 # ------------------------------------------------------------------------------
@@ -272,8 +274,8 @@ process.out.outputCommands += ['keep *_pileupJetIdProducerCHS_*_*', 'keep *_pile
 # ------------------------------------------------------------------------------
 #process.load("metPUSubtraction_cff")
 #
-#process.calibratedAK5PFJetsForPFMEtMVA.correctors = cms.vstring("ak5PFL1FastL2L3" + residual)
-#process.calibratedAK5PFJetsForNoPileUpPFMEt.correctors = cms.vstring("ak5PFL1FastL2L3" + residual)
+#process.calibratedAK4PFJetsForPFMEtMVA.correctors = cms.vstring("ak4PFL1FastL2L3" + residual)
+#process.calibratedAK4PFJetsForNoPileUpPFMEt.correctors = cms.vstring("ak4PFL1FastL2L3" + residual)
 #process.pfMEtMVA.srcLeptons = cms.VInputTag("isomuons","isoelectrons","isotaus")
 #process.noPileUpPFMEt.srcLeptons = cms.VInputTag("isomuons","isoelectrons","isotaus")
 #
@@ -307,8 +309,8 @@ process.out.outputCommands += ['keep *_pileupJetIdProducerCHS_*_*', 'keep *_pile
 #    rpcRecHits = cms.InputTag( "hltRpcRecHits" ),
 #)
 #
-#process.hltAK5JetID = cms.EDProducer("JetIDProducer", HLTJetIDParams,
-#    src = cms.InputTag("hltAntiKT5CaloJets")
+#process.hltAK4JetID = cms.EDProducer("JetIDProducer", HLTJetIDParams,
+#    src = cms.InputTag("hltAntiKT4CaloJets")
 #)
 #
 #process.pfMetSig = cms.EDProducer('METSignificance',
@@ -319,9 +321,9 @@ process.out.outputCommands += ['keep *_pileupJetIdProducerCHS_*_*', 'keep *_pile
 #      electronTag          = cms.untracked.InputTag('pfIsolatedElectrons'+postfix),
 #
 #      #pfjetsTag            = cms.untracked.InputTag('pfJets'),
-#      pfjetsTag            = cms.untracked.InputTag('ak5PFJets'),  # WARNING: no cross-cleaning with leptons! I had to comment out the loops over leptons in METSignificance.cc
-#      pfjetCorrectorL1     = cms.untracked.string('ak5PFL1Fastjet'),
-#      pfjetCorrectorL123   = cms.untracked.string('ak5PFL1FastL2L3'),
+#      pfjetsTag            = cms.untracked.InputTag('ak4PFJets'),  # WARNING: no cross-cleaning with leptons! I had to comment out the loops over leptons in METSignificance.cc
+#      pfjetCorrectorL1     = cms.untracked.string('ak4PFL1Fastjet'),
+#      pfjetCorrectorL123   = cms.untracked.string('ak4PFL1FastL2L3'),
 #
 #      jetResAlgo           = cms.string('AK5PF'),
 #      jetResEra            = cms.string('Spring10'),
@@ -330,18 +332,18 @@ process.out.outputCommands += ['keep *_pileupJetIdProducerCHS_*_*', 'keep *_pile
 #)
 #if isData:
 #    process.pfMetSig.runOnMC = False
-#    process.pfMetSig.pfjetCorrectorL123 = 'ak5PFL1FastL2L3Residual'
+#    process.pfMetSig.pfjetCorrectorL123 = 'ak4PFL1FastL2L3Residual'
 #
 #userSequence = cms.Sequence(
 #    process.pfPileUpFlag
 #  + process.hltPFPileUpFlag
-#  + process.hltAK5JetID
+#  + process.hltAK4JetID
 #  + process.pfMetSig
 #)
 #userOutputCommands = cms.untracked.vstring(
 #    "keep *_pfPileUpFlag__*",
 #    "keep *_hltPFPileUpFlag__*",
-#    "keep *_hltAK5JetID_*_*",
+#    "keep *_hltAK4JetID_*_*",
 #    "keep *_pfMetSig_*_*",
 #)
 #process.p += userSequence
